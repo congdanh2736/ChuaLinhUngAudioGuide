@@ -1,0 +1,136 @@
+@startuml DFD_Muc_1
+' ============================================================
+'  DFD MỨC 1 - Hệ thống thuyết minh tự động đa ngôn ngữ Chùa Linh Ứng
+'  Ký hiệu (Gane & Sarson):
+'    - Tác nhân ngoài : hình chữ nhật
+'    - Tiến trình     : hình elip (đánh số 1.0 ... 7.0)
+'    - Kho dữ liệu    : hình trụ (D1 ... D13 = các collection MongoDB)
+'    - Luồng dữ liệu  : mũi tên có nhãn
+' ============================================================
+top to bottom direction
+skinparam nodesep 40
+skinparam ranksep 70
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam ArrowColor #333333
+skinparam ArrowFontSize 10
+skinparam rectangle {
+  BackgroundColor #FFF4D6
+  BorderColor #8A6D1F
+}
+skinparam usecase {
+  BackgroundColor #DCEBFF
+  BorderColor #2F5597
+}
+skinparam database {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+}
+
+' ---------------- Tác nhân ngoài ----------------
+rectangle "Du khách" as DK
+rectangle "Nhân viên\n(staff)" as NV
+rectangle "Quản trị viên\n(admin)" as QTV
+rectangle "Cổng thanh toán" as CTT
+rectangle "Dịch vụ dịch máy\n(Google / MyMemory)" as DM
+rectangle "Dịch vụ giọng đọc\n(Edge-TTS)" as TTS
+rectangle "Dịch vụ AI\n(Gemini / Groq / OpenRouter)" as AI
+
+' ---------------- Tiến trình ----------------
+usecase "1.0\nQuản lý truy cập\nvà thanh toán" as P1
+usecase "2.0\nXác thực và\nquản lý tài khoản" as P2
+usecase "3.0\nQuản lý điểm tham quan\nvà lộ trình" as P3
+usecase "4.0\nQuản lý ngôn ngữ,\nbản dịch và audio" as P4
+usecase "5.0\nCung cấp nội dung\nthuyết minh" as P5
+usecase "6.0\nHỏi đáp chatbot" as P6
+usecase "7.0\nThống kê" as P7
+
+' ---------------- Kho dữ liệu ----------------
+database "D1 languages" as D1
+database "D2 pois" as D2
+database "D3 poi_localizations" as D3
+database "D4 tours" as D4
+database "D5 admin_users" as D5
+database "D6 access_sessions" as D6
+database "D7 payments" as D7
+database "D8 knowledge_articles" as D8
+database "D9 chat_logs" as D9
+database "D10 visit_events" as D10
+database "D11 ui_translations" as D11
+database "D12 chat_cache" as D12
+database "D13 media_files" as D13
+
+' ===== 1.0 Quản lý truy cập và thanh toán =====
+DK --> P1 : yêu cầu mua vé, mã truy cập
+P1 --> DK : link thanh toán, token truy cập
+P1 --> CTT : yêu cầu thanh toán
+CTT --> P1 : kết quả thanh toán (webhook ký HMAC)
+NV --> P1 : số lượng mã, ghi chú
+P1 --> NV : mã truy cập, danh sách phiên
+QTV --> P1 : yêu cầu thu hồi mã
+P1 <--> D6 : phiên truy cập
+P1 <--> D7 : giao dịch
+
+' ===== 2.0 Xác thực và quản lý tài khoản =====
+NV --> P2 : tên đăng nhập, mật khẩu
+QTV --> P2 : thông tin đăng nhập, thông tin tài khoản
+P2 --> NV : token JWT
+P2 --> QTV : token JWT, danh sách tài khoản
+P2 <--> D5 : tài khoản
+
+' ===== 3.0 Quản lý điểm tham quan và lộ trình =====
+QTV --> P3 : thông tin điểm, lộ trình
+P3 --> QTV : danh sách điểm, lộ trình
+P3 <--> D2 : điểm tham quan
+P3 <--> D4 : lộ trình
+D3 --> P3 : số bản dịch của điểm (kiểm tra khi xóa)
+P3 --> P4 : yêu cầu dịch (điểm mới / nội dung đổi)
+
+' ===== 4.0 Quản lý ngôn ngữ, bản dịch và audio =====
+QTV --> P4 : yêu cầu dịch, sửa tay, xóa bản dịch, bật/tắt ngôn ngữ
+P4 --> QTV : trạng thái bản dịch từng ngôn ngữ
+P4 <--> D1 : ngôn ngữ, mã dịch, giọng đọc
+D2 --> P4 : nội dung gốc tiếng Việt
+P4 <--> D3 : bản dịch, trạng thái, source_hash
+P4 --> D4 : bản dịch tên, mô tả lộ trình
+P4 <--> D11 : nhãn giao diện
+P4 --> D13 : file audio mp3
+P4 <--> DM : văn bản cần dịch / đã dịch
+P4 <--> TTS : văn bản / âm thanh mp3
+
+' ===== 5.0 Cung cấp nội dung thuyết minh =====
+DK --> P5 : ngôn ngữ chọn, token, sự kiện xem / nghe / vào vùng
+P5 --> DK : nhãn giao diện, nội dung, audio, lộ trình gợi ý
+D6 --> P5 : phiên còn hiệu lực
+D1 --> P5 : danh sách ngôn ngữ
+D2 --> P5 : điểm tham quan
+D3 --> P5 : bản dịch (ngôn ngữ chọn -> en -> vi)
+D4 --> P5 : lộ trình
+D13 --> P5 : file audio
+P5 --> D10 : sự kiện tham quan
+P5 --> P4 : yêu cầu dịch ngôn ngữ còn thiếu
+P4 --> P5 : nhãn giao diện, bản dịch mới
+
+' ===== 6.0 Hỏi đáp chatbot =====
+DK --> P6 : câu hỏi
+P6 --> DK : câu trả lời, nguồn tham khảo
+QTV --> P6 : bài viết kiến thức
+P6 <--> D8 : bài viết kiến thức
+D2 --> P6 : nội dung điểm tham quan
+P6 <--> D9 : lịch sử hỏi đáp
+P6 <--> D12 : câu trả lời lưu tạm
+P6 <--> AI : câu hỏi + tài liệu / câu trả lời
+P6 <--> DM : câu trả lời dự phòng
+
+' Quản trị viên cũng xem được thống kê (quyền bao gồm quyền nhân viên)
+' ===== 7.0 Thống kê =====
+NV --> P7 : yêu cầu xem thống kê
+P7 --> NV : báo cáo thống kê
+D3 --> P7 : số bản dịch theo trạng thái
+D6 --> P7 : phiên, doanh thu
+D9 --> P7 : câu hỏi gần đây
+D10 --> P7 : lượt tương tác, top điểm
+' (7.0 còn đọc thêm D1, D2 để đếm số ngôn ngữ bật, số điểm)
+
+@enduml
