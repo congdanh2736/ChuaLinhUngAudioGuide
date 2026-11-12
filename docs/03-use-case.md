@@ -85,7 +85,7 @@ flowchart LR
 - **Phạm vi:** trả lời mọi điều về Chùa Linh Ứng và chuyến tham quan (lịch sử, kiến trúc, Phật giáo liên quan, giờ mở cửa, đường đi, các điểm gần chùa...). Câu hỏi ngoài phạm vi (lập trình, chính trị, bài tập...) → từ chối lịch sự và gợi ý câu hỏi phù hợp, kể cả khi người dùng cố "bẻ" hướng dẫn.
 - **Độ chính xác:** ưu tiên tài liệu của chùa; không bịa số liệu, ngày tháng, giá cả; không chắc thì nói rõ và gợi ý hỏi nhân viên.
 - **Dự phòng:** chưa cấu hình AI hoặc AI lỗi/quá tải → trích câu liên quan nhất trong tài liệu (BM25) rồi dịch sang ngôn ngữ khách.
-- **Quy tắc:** tối đa `CHAT_DAILY_LIMIT` câu/phiên/ngày (429); câu hỏi mở đầu giống nhau dùng cache (MongoDB); câu nối tiếp không dùng cache vì phụ thuộc ngữ cảnh.
+- **Quy tắc:** tối đa `CHAT_DAILY_LIMIT` câu/phiên/ngày (429); câu hỏi mở đầu giống nhau dùng cache (bảng `chat_cache`); câu nối tiếp không dùng cache vì phụ thuộc ngữ cảnh.
 
 ### UC10 + UC11 — Quản lý điểm tham quan & dịch tự động
 - **Actor:** Admin

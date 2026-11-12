@@ -8,7 +8,7 @@ Có cấu hình AI (LLM_API_KEY) -> chế độ AI tạo sinh (RAG):
     ưu tiên tài liệu của chùa, không bịa số liệu; câu hỏi ngoài phạm vi thì từ chối lịch sự.
 Không có AI hoặc AI lỗi -> chế độ dự phòng: tìm đoạn liên quan nhất (BM25) rồi trích ra.
 
-Các bước chung: giới hạn số câu/ngày -> cache (MongoDB) -> trả lời -> lưu log.
+Các bước chung: giới hạn số câu/ngày -> cache (bảng chat_cache) -> trả lời -> lưu log.
 """
 
 from datetime import datetime

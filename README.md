@@ -7,7 +7,7 @@ Du khách quét QR ở cổng chùa → mua quyền truy cập (online hoặc ti
 | Thành phần | Công nghệ |
 |---|---|
 | Backend | Python 3.11 – 3.14 · FastAPI · Pydantic v2 |
-| Database | MongoDB 7 (Motor async) — local, Docker hoặc Atlas |
+| Database | Microsoft SQL Server 2019/2022 (SQLAlchemy 2.0 async + ODBC) — có khóa ngoại, cài trên máy hoặc Docker |
 | Đa ngôn ngữ | deep-translator (Google Translate) · Edge-TTS (giọng đọc Microsoft, miễn phí) |
 | Chatbot | AI tạo sinh (Google Gemini miễn phí / Groq / OpenRouter) + RAG trên tài liệu của chùa, chỉ trả lời trong phạm vi Chùa Linh Ứng |
 | Frontend | HTML/CSS/JavaScript thuần · Leaflet (bản đồ) |
@@ -39,7 +39,7 @@ Du khách quét QR ở cổng chùa → mua quyền truy cập (online hoặc ti
                                         ▼  chỉ gọi Repository / Integration
                 ┌──────────────────────────────────────────────┐
                 │ LỚP 3 · DATA ACCESS                           │
-                │   app/repositories/  → MongoDB (10 collection)│
+                │   app/repositories/  → SQL Server (15 bảng)   │
                 │   app/integrations/  → Dịch máy, TTS, LLM,    │
                 │                        cổng thanh toán, file  │
                 └──────────────────────────────────────────────┘
@@ -49,22 +49,28 @@ Du khách quét QR ở cổng chùa → mua quyền truy cập (online hoặc ti
 
 ## Cài đặt & chạy
 
-### Bước 1 — Cài MongoDB (chọn 1 trong 3 cách)
+### Bước 1 — Cài SQL Server (chọn 1 trong 2 cách)
 
 **Cách A — Cài trên Windows (khuyên dùng khi code hằng ngày)**
-1. Tải **MongoDB Community Server** (bản `.msi`) tại https://www.mongodb.com/try/download/community
-   (hoặc mở PowerShell: `winget install MongoDB.Server`).
-2. Khi cài chọn **Complete**, giữ nguyên tick **"Install MongoDB as a Service"** → MongoDB tự chạy mỗi khi bật máy.
-   Nên tick thêm **MongoDB Compass** (giao diện xem dữ liệu).
-3. Kiểm tra: mở `services.msc` → thấy **MongoDB Server (MongoDB)** ở trạng thái *Running*.
-4. Mở Compass → *Connect* `mongodb://localhost:27017` để xem dữ liệu (database `audio_guide`).
+1. Tải **SQL Server 2022 Express** (miễn phí) tại https://www.microsoft.com/sql-server/sql-server-downloads → chọn *Basic*.
+   Cài xong ghi lại tên instance, thường là `localhost\SQLEXPRESS`.
+2. Cài **ODBC Driver 18 for SQL Server**: https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server
+   (máy đã có ODBC Driver 17 thì dùng luôn, nhớ sửa `driver=ODBC+Driver+17+for+SQL+Server` trong `.env`).
+3. Nên cài **SQL Server Management Studio (SSMS)** để xem dữ liệu, sơ đồ quan hệ (*Database Diagrams*) và thử xóa dữ liệu.
+4. Kiểm tra: mở `services.msc` → thấy **SQL Server (SQLEXPRESS)** ở trạng thái *Running*.
 
-**Cách B — Docker:** `docker compose up --build` (chạy cả MongoDB + backend, mở http://localhost:8000).
-Chỉ muốn MongoDB trong Docker: `docker compose up -d mongo` rồi đặt `MONGO_URI=mongodb://localhost:27018` trong `.env`
-(dùng cổng 27018 để không đụng MongoDB đã cài sẵn trên máy ở cổng 27017). Dữ liệu trong Docker tách riêng với MongoDB trên máy.
+**Cách A2 — SQL Server LocalDB (máy đã cài Visual Studio thường có sẵn):** không cần cài thêm, không cần service.
+Đặt `DATABASE_URL=mssql+aioodbc://@(localdb)\MSSQLLocalDB/audio_guide?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes`;
+SSMS kết nối server `(localdb)\MSSQLLocalDB` (Windows Authentication). Kiểm tra có LocalDB: `sqllocaldb info`.
 
-**Cách C — MongoDB Atlas (cloud, miễn phí, cả nhóm dùng chung 1 DB):** tạo cluster M0 theo
-[docs/05-ci-cd.md](docs/05-ci-cd.md#bước-3--tạo-database-mongodb-atlas-free-m0), rồi đặt `MONGO_URI=mongodb+srv://...` trong `.env`.
+**Cách B — Docker:** `docker compose up --build` (chạy cả SQL Server 2022 + backend, mở http://localhost:8000).
+Chỉ muốn SQL Server trong Docker: `docker compose up -d sqlserver` rồi đặt trong `.env`:
+`DATABASE_URL=mssql+aioodbc://sa:YourStrong!Passw0rd@localhost:14330/audio_guide?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes`
+(cổng 14330 để không đụng SQL Server đã cài trên máy; SSMS kết nối `localhost,14330`, user `sa`).
+
+> Không cần tự tạo database: lần chạy đầu, ứng dụng tự tạo database `audio_guide` và toàn bộ bảng + khóa ngoại (**Code First**,
+> khai báo ở `app/db/tables.py`). Script SQL tương đương: `docs/database/schema-sqlserver.sql`.
+> Mật khẩu có ký tự đặc biệt như `@ : / ? #` thì phải mã hóa URL trong `DATABASE_URL` (vd `@` → `%40`).
 
 ### Bước 2 — Chạy backend
 
@@ -76,14 +82,15 @@ python -m venv .venv
 # Cài thư viện (mọi thư viện đều có bản cài sẵn, không cần Visual C++/Rust)
 pip install -r requirements-dev.txt
 
-# Tạo file cấu hình (mặc định MONGO_URI=mongodb://localhost:27017)
+# Tạo file cấu hình (mặc định DATABASE_URL trỏ tới localhost\SQLEXPRESS, đăng nhập bằng tài khoản Windows)
 copy .env.example .env        # macOS/Linux: cp .env.example .env
 
 # Chạy server
 uvicorn app.main:app --reload
 ```
 
-Thấy dòng `Đã kết nối MongoDB` là thành công. Nếu MongoDB chưa chạy, server dừng ngay và in hướng dẫn khắc phục.
+Thấy dòng `Đã kết nối cơ sở dữ liệu: mssql+aioodbc://...` là thành công. Nếu SQL Server chưa chạy hoặc sai tên driver,
+server dừng ngay và in hướng dẫn khắc phục.
 
 | Địa chỉ | Nội dung |
 |---|---|
@@ -113,12 +120,12 @@ Chatbot sẽ trả lời tự nhiên mọi câu hỏi về Chùa Linh Ứng (l�
 
 ### Dữ liệu được lưu ở đâu?
 
-Mọi thứ nằm trong **MongoDB** — tắt server, khởi động lại hay deploy lên cloud đều không mất:
+Mọi thứ nằm trong **SQL Server** (database `audio_guide`) — tắt server, khởi động lại đều không mất:
 
-| Dữ liệu | Collection |
+| Dữ liệu | Bảng |
 |---|---|
-| Điểm tham quan, bản dịch, lộ trình, ngôn ngữ | `pois`, `poi_localizations`, `tours`, `languages` |
-| **File audio mp3** | `media_files` (đặt `MEDIA_STORAGE=local` nếu muốn lưu ra thư mục) |
+| Điểm tham quan, bản dịch, lộ trình, ngôn ngữ | `pois`, `poi_localizations`, `tours`, `tour_pois`, `tour_translations`, `languages` |
+| **File audio mp3** | `media_files`, cột `VARBINARY(MAX)` (đặt `MEDIA_STORAGE=local` nếu muốn lưu ra thư mục) |
 | Tài khoản, mã truy cập, thanh toán | `admin_users`, `access_sessions`, `payments` |
 | Chatbot: kiến thức, lịch sử, **cache câu trả lời** (tự hết hạn) | `knowledge_articles`, `chat_logs`, `chat_cache` |
 | Nhãn giao diện đã dịch, thống kê | `ui_translations`, `visit_events` |
@@ -127,16 +134,28 @@ Server tắt khi đang dịch? Lần khởi động sau sẽ **tự chạy tiế
 
 Muốn xóa sạch để demo lại từ đầu: `python -m app.db.reset --yes`
 
+### Ràng buộc khóa ngoại — dữ liệu đang được tham chiếu thì không xóa được
+
+13 khóa ngoại, tất cả `ON DELETE NO ACTION` (xem [docs/02-erd.md](docs/02-erd.md)). Thử trong SSMS:
+
+```sql
+USE audio_guide;
+DELETE FROM pois WHERE code = N'TUONG_QUAN_AM';      -- lỗi 547: còn bản dịch / lượt tham quan / lộ trình trỏ tới
+DELETE FROM languages WHERE code = N'en';            -- lỗi 547: còn bản dịch tiếng Anh
+```
+
+Trong ứng dụng, xóa POI còn bản dịch → HTTP 409 kèm hướng dẫn (xóa bản dịch trước; POI đã có lượt tham quan thì ẩn đi).
+
 ## Kiểm thử
 
 ```bash
-pytest                              # toàn bộ test (không cần MongoDB: dùng DB giả lập trong RAM)
+pytest                              # toàn bộ test (không cần SQL Server: dùng SQLite file tạm, BẬT khóa ngoại)
 pytest tests/test_api               # lớp 1 - API (mock Service)
 pytest tests/test_services          # lớp 2 - nghiệp vụ
-pytest tests/test_repositories      # lớp 3 - truy vấn DB
+pytest tests/test_repositories      # lớp 3 - truy vấn DB + ràng buộc khóa ngoại
 pytest tests/test_e2e.py            # tích hợp đầu-cuối theo kịch bản PRD
-# Chạy toàn bộ test trên MongoDB thật (CI làm vậy):
-#   Windows: $env:TEST_MONGO_URI="mongodb://localhost:27017"; pytest
+# Chạy toàn bộ test trên SQL Server thật (CI làm vậy) - dùng 1 database RIÊNG cho test vì test xóa sạch bảng:
+#   Windows: $env:TEST_DATABASE_URL="mssql+aioodbc://@localhost\SQLEXPRESS/audio_guide_test?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"; pytest
 pytest --cov                        # đo độ phủ (hiện ~89%)
 ruff check . && ruff format --check .   # kiểm tra style
 ```
@@ -145,11 +164,11 @@ ruff check . && ruff format --check .   # kiểm tra style
 
 ```
 push / PR ─▶ CI: lint ─▶ unit test (Py 3.11 + 3.12, coverage ≥ 80%) ─▶ build Docker + smoke test
-                     └─▶ integration test trên MongoDB 7 thật ──────┘
+                     └─▶ integration test trên SQL Server 2022 thật ┘
 merge main ─▶ CD: build image ─▶ push ghcr.io ─▶ Render deploy hook ─▶ kiểm tra /health/ready
 ```
 
-Hướng dẫn bật CD lên Render + MongoDB Atlas (miễn phí): [docs/05-ci-cd.md](docs/05-ci-cd.md).
+Deploy: image Docker đã cài sẵn ODBC Driver 18; chỉ cần đặt biến `DATABASE_URL` trỏ tới SQL Server (vd Azure SQL Database) trên Render.
 
 ## Cấu trúc thư mục
 
@@ -160,9 +179,9 @@ app/
 ├── models/                 # domain model (ERD) + view model của Service
 ├── api/          ◀ LỚP 1   # deps.py (DI), errors.py (xử lý lỗi tập trung), schemas/, v1/endpoints/
 ├── services/     ◀ LỚP 2   # nghiệp vụ
-├── repositories/ ◀ LỚP 3   # truy cập MongoDB
+├── repositories/ ◀ LỚP 3   # truy cập SQL Server (SQLAlchemy)
 ├── integrations/ ◀ LỚP 3   # dịch máy, TTS, LLM, cổng thanh toán, lưu file
-└── db/                     # kết nối, index, dữ liệu khởi tạo
+└── db/                     # tables.py (lược đồ + khóa ngoại), database.py (kết nối), dữ liệu khởi tạo
 frontend/                   # app du khách + admin/ (HTML/CSS/JS thuần)
 tests/                      # test_api/ · test_services/ · test_repositories/ · test_e2e.py
 docs/                       # tài liệu thiết kế, ERD, use case, API, CI/CD, quy ước, kịch bản demo

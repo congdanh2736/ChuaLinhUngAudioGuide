@@ -122,7 +122,7 @@ def popular_times(event_times: Iterable[datetime], tz: timezone) -> dict:
     counts = [[0] * 24 for _ in range(7)]
     total = 0
     for moment in event_times:
-        if moment.tzinfo is None:  # MongoDB trả datetime UTC không kèm múi giờ
+        if moment.tzinfo is None:  # datetime không kèm múi giờ được hiểu là giờ UTC
             moment = moment.replace(tzinfo=UTC)
         local = moment.astimezone(tz)
         counts[local.weekday()][local.hour] += 1

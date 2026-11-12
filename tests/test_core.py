@@ -20,8 +20,10 @@ from app.services.retrieval import BM25Index, Document, normalize
 
 def test_production_rejects_default_secrets():
     with pytest.raises(RuntimeError) as exc:
-        Settings(_env_file=None, APP_ENV="production", MONGO_URI="mongomock://x").validate_for_production()
-    assert "JWT_SECRET" in str(exc.value) and "MONGO_URI" in str(exc.value)
+        Settings(
+            _env_file=None, APP_ENV="production", DATABASE_URL="sqlite+aiosqlite:///x.db"
+        ).validate_for_production()
+    assert "JWT_SECRET" in str(exc.value) and "DATABASE_URL" in str(exc.value)
 
 
 def test_production_ok_with_real_config():
@@ -31,7 +33,7 @@ def test_production_ok_with_real_config():
         JWT_SECRET="x" * 40,
         FIRST_ADMIN_PASSWORD="StrongPass!2026",
         PAYMENT_WEBHOOK_SECRET="another-secret",
-        MONGO_URI="mongodb://db:27017",
+        DATABASE_URL="mssql+aioodbc://sa:pw@db:1433/audio_guide?driver=ODBC+Driver+18+for+SQL+Server",
     ).validate_for_production()
 
 

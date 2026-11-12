@@ -48,8 +48,8 @@ Phân công dựa trên bảng UC của nhóm, kết hợp với chia theo lớp
 |---|---|
 | `app/core/config.py`, `exceptions.py`, `logging.py`, `app/core/__init__.py`, `app/__init__.py` | cấu hình chung |
 | `app/models/domain.py`, `views.py`, `app/models/__init__.py` | mô hình dữ liệu |
-| `app/db/mongo.py`, `indexes.py`, `seed.py`, `seed_data.py`, `reset.py`, `demo_events.py`, `app/db/__init__.py` | UC18 (16 ngôn ngữ, seed) |
-| `app/repositories/base.py`, `repositories.py`, `__init__.py` | UC12 (lọc, phân trang), UC13 (aggregate), UC16 (gỡ POI khỏi lộ trình) |
+| `app/db/database.py`, `tables.py`, `seed.py`, `seed_data.py`, `reset.py`, `demo_events.py`, `app/db/__init__.py` | UC18 (16 ngôn ngữ, seed); lược đồ SQL Server + khóa ngoại |
+| `app/repositories/base.py`, `repositories.py`, `__init__.py` | UC12 (lọc, phân trang), UC13 (GROUP BY), UC16 (gỡ POI khỏi lộ trình) |
 | `app/integrations/payment_gateway.py`, `translator.py`, `tts.py`, `media_storage.py`, `__init__.py` | UC02 (HMAC) |
 | `app/services/payment_service.py` | UC02 (webhook idempotent) |
 | `app/services/stats_service.py` | UC13 |
@@ -65,7 +65,7 @@ Phân công dựa trên bảng UC của nhóm, kết hợp với chia theo lớp
 |---|---|
 | Danh | `README.md`, `docs/01-kien-truc-3-lop.md`, báo cáo mục I, III |
 | Tài | `docs/03-use-case.md`, `docs/10-dac-ta-use-case.md`, `docs/Dac-ta-Use-Casee.docx`, báo cáo mục II.1, II.2, II.3 |
-| Phát | `docs/02-erd.md`, `docs/RDM.png`, `docs/use-case/`, báo cáo mục II.4, DFD (`docs/bao-cao/dfd-*`) |
+| Phát | `docs/02-erd.md`, `docs/RDM.png`, `docs/database/`, `docs/use-case/`, báo cáo mục II.4, DFD (`docs/bao-cao/dfd-*`) |
 
 > File dùng chung nhiều UC (`admin.js`, `app.js`, `admin.py`) giao cho **một chủ sở hữu**; người khác muốn sửa thì mở Pull Request để chủ file review.
 
@@ -75,26 +75,14 @@ Phân công dựa trên bảng UC của nhóm, kết hợp với chia theo lớp
 
 Dùng khi muốn lịch sử Git thể hiện mỗi người commit phần của mình. Làm trên **nhánh mới**, không ghi đè `main` cho tới khi xong.
 
-**Chuẩn bị:**
-- Danh tạo tag giữ lịch sử cũ (chạy trong thư mục project hiện tại):
-  ```bash
-  git tag backup-truoc-chia-commit
-  git push origin backup-truoc-chia-commit
-  ```
-- Danh gửi thư mục `_commit_zips/` (16 file zip + `THU-TU-COMMIT.txt`) cho Tài và Phát. Mỗi zip ứng với một vòng và giữ nguyên đường dẫn thư mục bên trong.
-- **Không làm trong thư mục project đang có đủ code**, vì `git add .` sẽ đưa luôn mọi file vào commit. Mỗi người làm trong một **bản clone mới**.
-
-**Vòng 01 (Phát) – tạo nhánh trống `rebuild`:**
+**Chuẩn bị (Danh làm):**
 ```bash
-git clone https://github.com/congdanh2736/audio-guide.git audio-guide-rebuild
-cd audio-guide-rebuild
-git checkout --orphan rebuild
-git rm -rf . -q                      # chỉ xóa trong bản clone mới này, repo gốc không ảnh hưởng
-# giải nén vong-01-Phat.zip vào thư mục audio-guide-rebuild
-git add .
-git commit -m "chore: khởi tạo cấu hình và mô hình dữ liệu"
-git push -u origin rebuild
+git tag backup-truoc-chia-commit          # giữ lại lịch sử cũ, có thể quay về bất cứ lúc nào
+git push origin backup-truoc-chia-commit
+git checkout --orphan rebuild              # nhánh mới, chưa có commit nào
+git rm -r --cached . -q                    # bỏ theo dõi mọi file (file vẫn còn trên ổ đĩa)
 ```
+Gửi cho Tài và Phát **bản sao đầy đủ của project** (nén zip từ tag `backup-truoc-chia-commit`) để mỗi người lấy file của mình.
 
 **Thứ tự commit** (sắp theo phụ thuộc giữa các lớp, để sau mỗi vòng code vẫn import được):
 
@@ -102,11 +90,11 @@ git push -u origin rebuild
 |---|---|---|---|
 | 1 | Phát | `.gitignore`, `requirements*.txt`, `pyproject.toml`, `.env.example`, `app/__init__.py`, `app/core/config.py`, `exceptions.py`, `logging.py`, `app/models/` | `chore: khởi tạo cấu hình và mô hình dữ liệu` |
 | 2 | Danh | `app/core/security.py` | `feat(core): JWT, băm mật khẩu bcrypt` |
-| 3 | Phát | `app/db/`, `app/repositories/`, `app/integrations/` (trừ `llm.py`) | `feat(data): kết nối MongoDB, repository, tích hợp dịch máy/TTS/thanh toán` |
+| 3 | Phát | `app/db/` (trừ `reset.py`, `demo_events.py`), `app/repositories/`, `app/integrations/` (trừ `llm.py`) | `feat(data): kết nối SQL Server, lược đồ có khóa ngoại, repository, tích hợp dịch máy/TTS/thanh toán` |
 | 4 | Tài | `app/services/` (các file của Tài), `app/integrations/llm.py`, `app/check_llm.py` | `feat(services): nghiệp vụ POI, bản dịch, lộ trình, chatbot, mã truy cập` |
 | 5 | Phát | `app/services/payment_service.py`, `stats_service.py`, `knowledge_service.py`, `language_service.py`, `media_service.py` | `feat(services): thanh toán, thống kê, kiến thức, ngôn ngữ` |
 | 6 | Danh | `app/services/auth_service.py`, `ui_text_service.py`, `app/db/ui_strings.py`, `app/api/`, `app/main.py` (trừ `mock_gateway.py`, `media.py`) | `feat(api): endpoint, schema, phân quyền, xử lý lỗi tập trung` |
-| 7 | Phát | `app/api/v1/endpoints/mock_gateway.py`, `media.py` | `feat(api): cổng thanh toán giả lập, phát file audio` |
+| 7 | Phát | `app/api/v1/endpoints/mock_gateway.py`, `media.py`, `app/db/reset.py`, `app/db/demo_events.py` | `feat: cổng thanh toán giả lập, phát file audio, script reset và dữ liệu demo` |
 | 8 | Danh | `frontend/` (trừ `admin/admin.js`) | `feat(frontend): app du khách, đa ngôn ngữ, geofence` |
 | 9 | Phát | `frontend/admin/admin.js` | `feat(admin): trang quản trị` |
 | 10 | Phát | `tests/conftest.py`, `fakes.py`, `__init__.py`, `test_repositories/`, `test_integrations/test_translator.py`, `test_e2e.py` | `test: repository, tích hợp, E2E` |
@@ -115,20 +103,14 @@ git push -u origin rebuild
 | 13 | Phát | `.github/`, `Dockerfile`, `docker-compose.yml`, `.dockerignore` | `ci: GitHub Actions, Docker, deploy Render` |
 | 14 | cả 3 | `README.md`, `docs/` theo bảng tài liệu ở trên | `docs: ...` |
 
-**Các vòng tiếp theo** – người thực hiện làm trên máy mình, bằng tài khoản GitHub của mình:
+**Mỗi vòng, người thực hiện làm trên máy của mình, đăng nhập tài khoản GitHub của mình:**
 ```bash
-# lần đầu tham gia:
-git clone -b rebuild https://github.com/congdanh2736/audio-guide.git audio-guide-rebuild
-cd audio-guide-rebuild
-# những lần sau: cd audio-guide-rebuild && git pull origin rebuild
-
-# giải nén zip của vòng mình vào thư mục audio-guide-rebuild (chọn ghi đè nếu được hỏi)
-git status                           # chỉ thấy đúng các file của vòng này là được
-git add .
-git commit -m "<message trong THU-TU-COMMIT.txt>"
+git fetch origin && git checkout rebuild && git pull origin rebuild   # vòng 1 thì clone rồi checkout nhánh rebuild
+# chép các file của vòng này từ bản zip vào đúng thư mục
+git add <các file của vòng này>
+git commit -m "<message>"
 git push origin rebuild
 ```
-Phải đợi người làm vòng trước push xong mới `git pull` rồi làm vòng của mình.
 Kiểm tra trước khi commit: `git config user.name` và `git config user.email` phải là tài khoản của chính mình.
 
 **Khi xong vòng 14:** chạy `pytest` trên nhánh `rebuild`. Nếu tất cả pass, mở Pull Request `rebuild → main` để cả nhóm review rồi merge (hoặc đặt `rebuild` làm nhánh mặc định trên GitHub). CI ở các vòng giữa có thể báo đỏ vì code chưa đủ; chỉ cần lần cuối xanh.

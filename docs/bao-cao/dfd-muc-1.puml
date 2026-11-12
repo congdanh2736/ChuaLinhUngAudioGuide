@@ -4,7 +4,7 @@
 '  Ký hiệu (Gane & Sarson):
 '    - Tác nhân ngoài : hình chữ nhật
 '    - Tiến trình     : hình elip (đánh số 1.0 ... 7.0)
-'    - Kho dữ liệu    : hình trụ (D1 ... D13 = các collection MongoDB)
+'    - Kho dữ liệu    : hình trụ (D1 ... D13 = các bảng SQL Server; D4 gồm cả tour_pois, tour_translations)
 '    - Luồng dữ liệu  : mũi tên có nhãn
 ' ============================================================
 top to bottom direction

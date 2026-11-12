@@ -125,6 +125,7 @@ def get_poi_service(repos=Depends(get_repos), localization_service=Depends(get_l
         localization_repo=repos["localization"],
         tour_repo=repos["tour"],
         localization_service=localization_service,
+        event_repo=repos["event"],
     )
 
 

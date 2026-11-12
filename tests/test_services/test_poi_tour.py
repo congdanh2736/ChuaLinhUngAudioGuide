@@ -44,6 +44,16 @@ class TestPoiService:
         assert await services["poi"].get(poi.id)  # POI vẫn còn
         assert await repos["localization"].list_for_poi(poi.id) != []
 
+    async def test_delete_restricted_when_visit_events_exist(self, services, repos):
+        poi = await services["poi"].create(poi_data("A"), auto_localize=False)
+        tour = await services["tour"].create({"code": "T", "name": "Tour", "poi_ids": [poi.id]})
+        await services["stats"].record_event(poi_id=poi.id, event_type="view", lang="vi", session_id=None)
+        with pytest.raises(ConflictError) as exc:
+            await services["poi"].delete(poi.id)
+        assert exc.value.code == "POI_HAS_VISIT_EVENTS"
+        assert await services["poi"].get(poi.id)  # POI vẫn còn
+        assert (await repos["tour"].get_by_id(tour.id)).poi_ids == [poi.id]  # lộ trình không bị đụng tới
+
     async def test_delete_after_removing_localizations(self, services, repos):
         poi = await services["poi"].create(poi_data("A"), auto_localize=False)
         await services["localization"].localize_poi(poi.id, ["en"])

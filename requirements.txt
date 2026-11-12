@@ -8,9 +8,10 @@ python-multipart==0.0.20
 pydantic==2.12.5
 pydantic-settings==2.11.0
 
-# ---- Database ----
-motor==3.7.1
-pymongo==4.15.5
+# ---- Database: SQL Server (cần cài thêm "ODBC Driver 18 for SQL Server" hoặc 17 trên máy) ----
+SQLAlchemy[asyncio]==2.0.44
+aioodbc==0.5.0
+pyodbc==5.3.0
 
 # ---- Bảo mật ----
 pyjwt==2.10.1

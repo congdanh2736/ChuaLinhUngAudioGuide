@@ -30,11 +30,12 @@ def clean_details(data: dict[str, Any]) -> dict[str, Any]:
 
 
 class PoiService:
-    def __init__(self, *, poi_repo, localization_repo, tour_repo, localization_service):
+    def __init__(self, *, poi_repo, localization_repo, tour_repo, localization_service, event_repo=None):
         self.poi_repo = poi_repo
         self.localization_repo = localization_repo
         self.tour_repo = tour_repo
         self.localization_service = localization_service
+        self.event_repo = event_repo
 
     async def get(self, poi_id: str) -> Poi:
         poi = await self.poi_repo.get_by_id(poi_id)
@@ -90,7 +91,8 @@ class PoiService:
     async def delete(self, poi_id: str) -> None:
         await self.get(poi_id)
         # Ràng buộc RESTRICT: còn bản dịch (poi_localizations) trỏ tới POI thì không cho xóa.
-        # MongoDB không có khóa ngoại nên quy tắc này được đảm bảo ở lớp Service.
+        # SQL Server đã chặn bằng khóa ngoại (fk_poi_localizations_poi_id); kiểm tra trước ở đây
+        # để báo lỗi dễ hiểu (kèm số bản dịch) và không đụng vào lộ trình khi chắc chắn không xóa được.
         remaining = await self.localization_repo.count({"poi_id": poi_id})
         if remaining:
             raise ConflictError(
@@ -98,5 +100,15 @@ class PoiService:
                 code="POI_HAS_LOCALIZATIONS",
                 details={"localizations": remaining},
             )
+        # Lượt tham quan (visit_events) cũng tham chiếu POI -> POI đã có lịch sử thống kê thì chỉ nên ẩn
+        visits = await self.event_repo.count({"poi_id": poi_id}) if self.event_repo else 0
+        if visits:
+            raise ConflictError(
+                f"Không thể xóa POI vì đã có {visits} lượt tham quan được thống kê. "
+                "Hãy ẩn POI (tắt hoạt động) thay vì xóa.",
+                code="POI_HAS_VISIT_EVENTS",
+                details={"visit_events": visits},
+            )
+        # Quy tắc nghiệp vụ: gỡ POI khỏi các lộ trình (bảng tour_pois) rồi mới xóa POI
         await self.tour_repo.remove_poi_everywhere(poi_id)
-        await self.poi_repo.delete(poi_id)
+        await self.poi_repo.delete(poi_id)  # khóa ngoại vẫn là chốt chặn cuối -> ConflictError 409

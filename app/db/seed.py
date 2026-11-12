@@ -65,14 +65,10 @@ async def backfill_sample_details(db) -> int:
     cho các POI mẫu CHƯA có trường opening_hours. Không đụng tới POI admin đã nhập/sửa chi tiết.
     Trả về số POI được bổ sung.
     """
-    collection = db[PoiRepository.collection_name]
+    poi_repo = PoiRepository(db)
     updated = 0
     for code, details in SAMPLE_POI_DETAILS.items():
-        result = await collection.update_one(
-            {"code": code, "opening_hours": {"$exists": False}},
-            {"$set": {**details, "updated_at": utcnow()}},
-        )
-        updated += result.modified_count
+        updated += await poi_repo.fill_details_if_missing(code, details)
     if updated:
         logger.info("Đã bổ sung thông tin chi tiết (giờ mở cửa, tiện ích...) cho %d điểm tham quan mẫu", updated)
     return updated
