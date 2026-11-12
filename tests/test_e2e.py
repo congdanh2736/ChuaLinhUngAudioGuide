@@ -11,7 +11,7 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from app.db.database import Database
+from app.db.database import Database, ensure_database_exists
 from app.main import create_app
 from app.services.task_runner import InlineTaskRunner
 from tests.fakes import FakeTranslator, FakeTTS
@@ -43,6 +43,7 @@ def e2e_settings(settings):
 
 
 async def _drop_all(url: str) -> None:
+    await ensure_database_exists(url)  # test e2e có thể chạy trước mọi test khác -> database chưa có
     db = Database(url)
     await db.drop_all()
     await db.dispose()
