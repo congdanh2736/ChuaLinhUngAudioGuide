@@ -14,7 +14,8 @@ Vi phạm ràng buộc của database được đổi thành ConflictError (HTTP
 - tham chiếu tới bản ghi không tồn tại      -> code INVALID_REFERENCE
 """
 
-import uuid
+import secrets
+import time
 from typing import Any, Generic, TypeVar
 
 from sqlalchemy import Table, and_, delete, func, insert, or_, select, true, update
@@ -29,7 +30,12 @@ ModelT = TypeVar("ModelT", bound=DomainModel)
 
 
 def new_id() -> str:
-    return uuid.uuid4().hex
+    """
+    Id 32 ký tự tăng dần theo thời điểm tạo: 16 hex thời gian (nano giây) + 16 hex ngẫu nhiên.
+    SQL Server trả bản ghi theo thứ tự khóa chính khi không có ORDER BY; id ngẫu nhiên (uuid4)
+    sẽ làm danh sách bị xáo trộn, còn id theo thời gian giữ đúng thứ tự thêm vào (giống SQLite/MongoDB).
+    """
+    return f"{time.time_ns():016x}{secrets.token_hex(8)}"
 
 
 def is_foreign_key_error(exc: IntegrityError) -> bool:
@@ -152,10 +158,10 @@ class BaseRepository(Generic[ModelT]):
     ) -> list[ModelT]:
         stmt = self._select(filters)
         order = [self.table.c[f].desc() if d < 0 else self.table.c[f].asc() for f, d in (sort or [])]
-        if skip or limit:
-            order.append(self.table.c.id.asc())  # SQL Server bắt buộc ORDER BY khi phân trang (OFFSET)
-        if order:
-            stmt = stmt.order_by(*order)
+        # Luôn sắp thêm theo id (= thứ tự thêm vào): kết quả ổn định trên mọi database,
+        # và SQL Server bắt buộc có ORDER BY khi phân trang (OFFSET)
+        order.append(self.table.c.id.asc())
+        stmt = stmt.order_by(*order)
         if skip:
             stmt = stmt.offset(skip)
         if limit:
