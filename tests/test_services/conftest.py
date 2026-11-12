@@ -1,4 +1,4 @@
-"""Lắp ráp các Service với repository (mongomock) + dịch vụ ngoài giả."""
+"""Lắp ráp các Service với repository (SQLite có khóa ngoại / SQL Server) + dịch vụ ngoài giả."""
 
 import pytest
 
@@ -37,6 +37,7 @@ def services(seeded_db, repos, settings, translator, tts, storage, task_runner):
         localization_repo=repos["localization"],
         tour_repo=repos["tour"],
         localization_service=localization,
+        event_repo=repos["event"],
     )
     tour = TourService(
         tour_repo=repos["tour"], poi_repo=repos["poi"], content_service=content, localization_service=localization

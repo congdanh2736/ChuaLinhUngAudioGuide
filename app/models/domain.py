@@ -1,12 +1,13 @@
 """
 Mô hình miền (domain models) - dữ liệu "thật" của hệ thống.
 
-- Lớp Repository đọc document MongoDB rồi chuyển thành các model này.
+- Lớp Repository đọc bản ghi SQL Server rồi chuyển thành các model này.
 - Lớp Service làm việc với các model này.
 - Lớp API KHÔNG trả thẳng model ra ngoài mà chuyển sang schema riêng (app/api/schemas)
   để có thể giấu trường nhạy cảm (vd: password_hash) và giữ hợp đồng API ổn định.
 
-Mỗi class tương ứng 1 collection trong ERD (xem docs/02-erd.md).
+Mỗi class tương ứng 1 bảng trong ERD (xem docs/02-erd.md, bảng khai báo ở app/db/tables.py).
+Riêng Tour gom thêm 2 bảng con: tour_pois (poi_ids) và tour_translations (translations).
 """
 
 from datetime import datetime

@@ -80,7 +80,7 @@ class TestPopularTimes:
         assert popular_times(events, VN) == {"sample_size": POPULAR_MIN_EVENTS - 1, "by_day": None}
 
     def test_normalized_to_peak_and_converted_to_local_time(self):
-        # 02:30 UTC = 09:30 giờ Việt Nam; datetime không kèm múi giờ (như Mongo trả về) được hiểu là UTC
+        # 02:30 UTC = 09:30 giờ Việt Nam; datetime không kèm múi giờ được hiểu là UTC
         busy = [datetime(2026, 10, 5, 2, 30)] * 30
         quiet = [at(0, "15:00").astimezone(UTC)] * 15
         result = popular_times(busy + quiet, VN)
@@ -225,7 +225,7 @@ class TestBackfill:
         old = await repos["poi"].insert(
             poi_data("CHANH_DIEN") | {"created_at": at(0, "08:00"), "updated_at": at(0, "08:00")}
         )
-        await seeded_db["pois"].update_one({"code": "CHANH_DIEN"}, {"$unset": {"opening_hours": ""}})
+        await repos["poi"].update(old.id, {"opening_hours": None})  # mô phỏng POI tạo từ phiên bản cũ
         custom = await services["poi"].create(
             poi_data("CONG_TAM_QUAN", opening_hours=[{"day": 0, "open": "07:00", "close": "08:00"}]),
             auto_localize=False,

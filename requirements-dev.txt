@@ -1,5 +1,5 @@
 -r requirements.txt
-mongomock-motor==0.0.36   # MongoDB giả lập trong RAM - CHỈ dùng cho bộ test tự động
+aiosqlite==0.21.0         # SQLite cho bộ test tự động (bật khóa ngoại) - không cần cài SQL Server khi chạy test
 pytest==8.4.2
 pytest-asyncio==1.2.0
 pytest-cov==7.0.0

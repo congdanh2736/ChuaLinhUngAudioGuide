@@ -1,5 +1,5 @@
 """
-Phục vụ file audio lưu trong MongoDB (MEDIA_STORAGE=mongo).
+Phục vụ file audio lưu trong SQL Server, bảng media_files (MEDIA_STORAGE=database).
 
 Hỗ trợ header Range (206 Partial Content) để trình duyệt tua được audio,
 và cache lâu dài vì tên file là hash nội dung (nội dung đổi -> tên đổi).

@@ -6,13 +6,13 @@
 
 | Lớp | Thư mục | Được làm | KHÔNG được làm |
 |---|---|---|---|
-| **1. Presentation** | `app/api/` | Nhận HTTP request, validate dữ liệu (Pydantic), kiểm tra đăng nhập/quyền, gọi Service, trả JSON | Viết `if` nghiệp vụ, gọi Repository hay MongoDB |
-| **2. Business Logic** | `app/services/` | Toàn bộ quy tắc nghiệp vụ, điều phối nhiều Repository | Biết tới HTTP (status code, Request), viết câu truy vấn Mongo |
-| **3. Data Access** | `app/repositories/`, `app/integrations/` | Đọc/ghi MongoDB, gọi dịch vụ ngoài (Google Translate, Edge-TTS, OpenRouter, cổng thanh toán), lưu file | Chứa quy tắc nghiệp vụ |
+| **1. Presentation** | `app/api/` | Nhận HTTP request, validate dữ liệu (Pydantic), kiểm tra đăng nhập/quyền, gọi Service, trả JSON | Viết `if` nghiệp vụ, gọi Repository hay database |
+| **2. Business Logic** | `app/services/` | Toàn bộ quy tắc nghiệp vụ, điều phối nhiều Repository | Biết tới HTTP (status code, Request), viết câu truy vấn SQL |
+| **3. Data Access** | `app/repositories/`, `app/integrations/` | Đọc/ghi SQL Server (SQLAlchemy), gọi dịch vụ ngoài (Google Translate, Edge-TTS, OpenRouter, cổng thanh toán), lưu file | Chứa quy tắc nghiệp vụ |
 
 Luồng gọi **một chiều**: `api → services → repositories/integrations`. Không đi ngược, không nhảy cóc.
 
-**Lợi ích:** đổi MongoDB sang PostgreSQL chỉ sửa lớp 3; đổi FastAPI sang framework khác chỉ sửa lớp 1; test được từng lớp riêng (API test bằng Service giả, Service test bằng DB giả).
+**Lợi ích:** đổi MongoDB sang SQL Server chỉ sửa lớp 3 (đã làm thật: giữ nguyên tên hàm của Repository nên lớp Service gần như không đổi); đổi FastAPI sang framework khác chỉ sửa lớp 1; test được từng lớp riêng (API test bằng Service giả, Service test bằng DB giả).
 
 ## 1.2 Một request đi qua 3 lớp như thế nào
 
@@ -25,15 +25,15 @@ sequenceDiagram
     participant D as deps.py (DI + auth)
     participant S as Lớp 2: ContentService
     participant R as Lớp 3: PoiRepository / PoiLocalizationRepository
-    participant M as MongoDB
+    participant M as SQL Server
     C->>A: GET /pois/abc?lang=ja + Bearer token
     A->>D: get_visitor() kiểm tra token
     D->>S: AccessService.verify_token()
     A->>S: get_poi("abc", "ja")
     S->>R: get_by_id("abc")
-    R->>M: find_one({_id})
+    R->>M: SELECT TOP 1 * FROM pois WHERE id = ?
     S->>R: list_for_langs(["ja","en","vi"])
-    R->>M: find({lang: {$in: [...]}})
+    R->>M: SELECT * FROM poi_localizations WHERE lang IN (?, ?, ?)
     S->>S: chọn bản dịch theo chuỗi fallback ja → en → vi
     S-->>A: LocalizedPoi
     A-->>C: {"success": true, "data": {...}}
@@ -69,7 +69,7 @@ app.dependency_overrides[get_poi_service] = lambda: service_gia
 
 | Vấn đề | Cách làm | Lý do |
 |---|---|---|
-| Lưu nội dung đa ngôn ngữ | Collection riêng `poi_localizations` (1 dòng / POI / ngôn ngữ) + `source_hash` | Thêm ngôn ngữ không phải sửa schema; sửa mô tả gốc thì bản dịch cũ tự hết hiệu lực |
+| Lưu nội dung đa ngôn ngữ | Bảng riêng `poi_localizations` (1 dòng / POI / ngôn ngữ, UNIQUE `(poi_id, lang)`) + `source_hash` | Thêm ngôn ngữ không phải sửa schema; sửa mô tả gốc thì bản dịch cũ tự hết hiệu lực |
 | Không có bản dịch | Fallback 3 tầng: ngôn ngữ yêu cầu → tiếng Anh → tiếng Việt | Khách không bao giờ thấy màn hình trống |
 | Dịch + TTS chậm | Chạy nền (`BackgroundTaskRunner`, tối đa 3 tác vụ song song) | Admin không phải chờ; không bị Google chặn vì gọi dồn |
 | Audio trùng lặp | Tên file = MD5(nội dung + giọng) | Cùng nội dung không tạo lại audio |
@@ -77,3 +77,5 @@ app.dependency_overrides[get_poi_service] = lambda: service_gia
 | Chatbot RAG | BM25 tự viết (bỏ dấu tiếng Việt) + LLM tùy chọn | Miễn phí; không có API key vẫn trả lời kiểu trích đoạn |
 | Thanh toán | Cổng giả lập ký **HMAC-SHA256** + webhook idempotent | Mô phỏng đúng luồng Payoo trong PRD mà không cần tài khoản merchant |
 | Dịch vụ ngoài | Interface (Protocol) + bản giả trong test | Test chạy offline, nhanh, ổn định |
+| Toàn vẹn dữ liệu | SQL Server + 13 khóa ngoại `ON DELETE NO ACTION`; Repository đổi lỗi vi phạm (547 / UNIQUE) thành `ConflictError` → 409 | Dữ liệu đang được tham chiếu không xóa được kể cả khi thao tác thẳng trên database; Service kiểm tra trước để báo lỗi dễ hiểu |
+| Đổi CSDL không ảnh hưởng nghiệp vụ | Repository giữ nguyên giao diện (bộ lọc dạng dict được dịch sang `WHERE`) | Minh chứng lợi ích kiến trúc 3 lớp |

@@ -45,4 +45,4 @@ def test_sample_data_uses_known_codes():
         assert f"cat_{poi['category']}" in UI_STRINGS_EN
         details = SAMPLE_POI_DETAILS[poi["code"]]
         assert set(details["amenities"]) <= set(AMENITIES)
-        json.dumps(details)  # lưu được vào MongoDB
+        json.dumps(details)  # lưu được vào cột JSON của SQL Server

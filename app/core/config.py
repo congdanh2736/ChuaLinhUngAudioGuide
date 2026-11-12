@@ -25,11 +25,17 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
     LOG_LEVEL: str = "INFO"
 
-    # --- Cơ sở dữ liệu ---
-    # MongoDB thật: "mongodb://localhost:27017" (cài trên máy / Docker) hoặc "mongodb+srv://..." (Atlas).
-    # "mongomock://..." chỉ dành cho bộ test tự động.
-    MONGO_URI: str = "mongodb://localhost:27017"
-    MONGO_DB_NAME: str = "audio_guide"
+    # --- Cơ sở dữ liệu: SQL Server ---
+    # Chuỗi kết nối SQLAlchemy. Database (vd audio_guide) chưa có thì app tự tạo lúc khởi động.
+    #  - Tài khoản SQL (sa / Docker):
+    #    mssql+aioodbc://sa:MatKhau@localhost:1433/audio_guide?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+    #  - Đăng nhập Windows (SQL Server Express trên máy):
+    #    mssql+aioodbc://@localhost\SQLEXPRESS/audio_guide?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+    # "sqlite+aiosqlite://..." chỉ dành cho bộ test tự động.
+    DATABASE_URL: str = (
+        "mssql+aioodbc://sa:YourStrong!Passw0rd@localhost:1433/audio_guide"
+        "?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+    )
 
     # --- Bảo mật / token ---
     JWT_SECRET: str = DEFAULT_JWT_SECRET
@@ -70,11 +76,11 @@ class Settings(BaseSettings):
 
     # --- Chatbot ---
     CHAT_DAILY_LIMIT: int = 50
-    CHAT_CACHE_TTL_SECONDS: int = 600  # cache câu trả lời lưu trong MongoDB, tự xóa khi hết hạn
+    CHAT_CACHE_TTL_SECONDS: int = 600  # cache câu trả lời lưu trong bảng chat_cache, quá hạn thì bỏ qua và dọn
 
     # --- File media (audio, ảnh) ---
-    # mongo = lưu file audio ngay trong MongoDB (bền vững, deploy đâu cũng còn) | local = thư mục MEDIA_DIR
-    MEDIA_STORAGE: str = "mongo"
+    # database = lưu file audio ngay trong SQL Server (bảng media_files, bền vững) | local = thư mục MEDIA_DIR
+    MEDIA_STORAGE: str = "database"
     MEDIA_DIR: str = "media"
     MEDIA_URL_PREFIX: str = "/media"
 
@@ -105,8 +111,8 @@ class Settings(BaseSettings):
             problems.append("FIRST_ADMIN_PASSWORD không được dùng mật khẩu mặc định")
         if self.PAYMENT_WEBHOOK_SECRET == "mock-webhook-secret":
             problems.append("PAYMENT_WEBHOOK_SECRET phải được đổi")
-        if self.MONGO_URI.startswith("mongomock://"):
-            problems.append("MONGO_URI phải trỏ tới MongoDB thật (mongomock mất dữ liệu khi khởi động lại)")
+        if not self.DATABASE_URL.startswith("mssql"):
+            problems.append("DATABASE_URL phải trỏ tới SQL Server (mssql+aioodbc://...), SQLite chỉ dùng cho test")
         if problems:
             raise RuntimeError("Cấu hình production không hợp lệ: " + "; ".join(problems))
 

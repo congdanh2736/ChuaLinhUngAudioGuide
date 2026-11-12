@@ -21,6 +21,28 @@ from app.services.payment_service import PaymentService
 from tests.conftest import poi_data
 from tests.fakes import FakeLLM
 
+# Các id dùng trong test phải tồn tại thật vì database có khóa ngoại:
+# access_sessions.created_by -> admin_users.id, chat_logs.session_id -> access_sessions.id
+STAFF_IDS = ("staff1", "s")
+SESSION_IDS = ("s", "s1", "s2", "limit", "x", "t", "h", "z", "a", "b")
+
+
+@pytest.fixture(autouse=True)
+async def referenced_rows(request, services, repos):
+    if request.node.cls is not None and request.node.cls.__name__ == "TestAuthService":
+        return  # test tài khoản cần bảng admin_users rỗng (tạo admin đầu tiên)
+    now = utcnow()
+    for staff_id in STAFF_IDS:
+        await repos["user"].insert(
+            {"id": staff_id, "username": f"user_{staff_id}", "password_hash": "x", "full_name": staff_id,
+             "role": "staff", "is_active": True, "created_at": now}
+        )  # fmt: skip
+    for session_id in SESSION_IDS:
+        await repos["session"].insert(
+            {"id": session_id, "code": f"T-{session_id}".upper(), "method": "cash", "status": "active",
+             "amount": 0, "created_at": now, "code_expires_at": now + timedelta(hours=1)}
+        )  # fmt: skip
+
 
 class TestAccessService:
     async def test_cash_code_redeem_flow(self, services):
@@ -333,7 +355,7 @@ class TestLanguageServiceWithMocks:
 
 
 async def test_chat_cache_shared_across_instances(services, repos, translator):
-    """Cache nằm trong MongoDB -> service mới (vd sau khi khởi động lại) vẫn dùng được."""
+    """Cache nằm trong bảng chat_cache -> service mới (vd sau khi khởi động lại) vẫn dùng được."""
     await services["poi"].create(
         __import__("tests.conftest", fromlist=["poi_data"]).poi_data("QA"), auto_localize=False
     )

@@ -1,16 +1,17 @@
 """
 Test TÍCH HỢP đầu-cuối: chạy app thật (3 lớp đầy đủ), chỉ thay dịch máy/TTS bằng bản giả.
-Mặc định dùng MongoDB giả lập; có biến TEST_MONGO_URI (CI) thì chạy trên MongoDB THẬT.
+Mặc định dùng SQLite (file tạm, có khóa ngoại); có biến TEST_DATABASE_URL (CI) thì chạy trên SQL Server THẬT.
 Mô phỏng đúng kịch bản trong PRD.
 """
 
+import asyncio
 import os
 import time
-import uuid
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.db.database import Database
 from app.main import create_app
 from app.services.task_runner import InlineTaskRunner
 from tests.fakes import FakeTranslator, FakeTTS
@@ -32,16 +33,19 @@ def use_fakes(app) -> InlineTaskRunner:
 @pytest.fixture
 def e2e_settings(settings):
     settings.SEED_SAMPLE_DATA = True
-    real_uri = os.getenv("TEST_MONGO_URI")
-    if real_uri:
-        settings.MONGO_URI = real_uri
-        settings.MONGO_DB_NAME = f"e2e_{uuid.uuid4().hex[:8]}"
+    real_url = os.getenv("TEST_DATABASE_URL")
+    if real_url:
+        settings.DATABASE_URL = real_url
+        asyncio.run(_drop_all(real_url))  # bắt đầu từ database rỗng
     yield settings
-    if real_uri:
-        from pymongo import MongoClient
+    if real_url:
+        asyncio.run(_drop_all(real_url))
 
-        with MongoClient(real_uri) as client:
-            client.drop_database(settings.MONGO_DB_NAME)
+
+async def _drop_all(url: str) -> None:
+    db = Database(url)
+    await db.drop_all()
+    await db.dispose()
 
 
 @pytest.fixture
@@ -52,7 +56,7 @@ def e2e(e2e_settings):
 
 
 def drain(client, runner) -> None:
-    """Chạy hết tác vụ nền trên CHÍNH event loop của app (bắt buộc khi dùng MongoDB thật)."""
+    """Chạy hết tác vụ nền trên CHÍNH event loop của app (kết nối DB gắn với event loop đã tạo ra nó)."""
     client.portal.call(runner.wait_all)
 
 
@@ -166,8 +170,6 @@ async def test_switch_language_translates_automatically(e2e):
 
 def test_data_survives_restart_and_unfinished_translations_resume(e2e_settings):
     """Dữ liệu nằm trong DB: tắt/mở lại server vẫn còn; bản dịch đang dở được chạy tiếp."""
-    if e2e_settings.MONGO_URI.startswith("mongomock://"):
-        pytest.skip("Cần MongoDB thật (TEST_MONGO_URI) để mô phỏng khởi động lại")
     app, test_client = start_app(e2e_settings)
     with test_client as client:
         use_fakes(app)

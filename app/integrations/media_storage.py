@@ -2,9 +2,9 @@
 Lưu file media (mp3) - thuộc lớp Data Access giống Repository nhưng cho file.
 
 Hai cách lưu, cùng một "giao diện" (Service không cần biết đang dùng cách nào):
-- MongoMediaStorage (mặc định): lưu bytes ngay trong MongoDB, collection `media_files`.
-  Bền vững như dữ liệu khác: deploy lên Render/Atlas, khởi động lại hay đổi máy đều còn.
-  Mỗi file mp3 thuyết minh chỉ ~50–300 KB, nhỏ hơn nhiều giới hạn 16 MB/document.
+- DatabaseMediaStorage (mặc định, MEDIA_STORAGE=database): lưu bytes ngay trong SQL Server,
+  bảng `media_files`, cột VARBINARY(MAX). Bền vững như dữ liệu khác: khởi động lại hay đổi máy đều còn.
+  Mỗi file mp3 thuyết minh chỉ ~50–300 KB.
 - LocalMediaStorage: lưu vào thư mục trên ổ đĩa (MEDIA_STORAGE=local).
 
 Tên file = MD5(giọng + nội dung) -> cùng nội dung thì dùng lại, không tạo audio lần 2.
@@ -14,9 +14,10 @@ import asyncio
 import hashlib
 from pathlib import Path
 
-from bson import Binary
+from sqlalchemy import func, insert, select, update
 
 from app.core.security import utcnow
+from app.db.tables import media_files
 
 CONTENT_TYPES = {".mp3": "audio/mpeg", ".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
 
@@ -37,34 +38,38 @@ class BaseMediaStorage:
         return f"{self.url_prefix}/{key}"
 
 
-class MongoMediaStorage(BaseMediaStorage):
+class DatabaseMediaStorage(BaseMediaStorage):
+    table = media_files
+
     def __init__(self, db, url_prefix: str):
         super().__init__(url_prefix)
-        self.collection = db["media_files"]
+        self.db = db
 
     async def exists(self, key: str) -> bool:
-        return await self.collection.count_documents({"key": key}, limit=1) > 0
+        stmt = select(func.count()).select_from(self.table).where(self.table.c.key == key)
+        async with self.db.connect() as conn:
+            return (await conn.execute(stmt)).scalar_one() > 0
 
     async def save(self, key: str, data: bytes, content_type: str | None = None) -> str:
-        await self.collection.update_one(
-            {"key": key},
-            {
-                "$set": {
-                    "data": Binary(data),
-                    "content_type": content_type or guess_type(key),
-                    "size": len(data),
-                    "updated_at": utcnow(),
-                }
-            },
-            upsert=True,
-        )
+        values = {
+            "data": bytes(data),
+            "content_type": content_type or guess_type(key),
+            "size": len(data),
+            "updated_at": utcnow(),
+        }
+        async with self.db.begin() as conn:
+            result = await conn.execute(update(self.table).where(self.table.c.key == key).values(**values))
+            if result.rowcount == 0:
+                await conn.execute(insert(self.table).values(key=key, **values))
         return self.url_for(key)
 
     async def get(self, key: str) -> tuple[bytes, str] | None:
-        doc = await self.collection.find_one({"key": key})
-        if doc is None:
+        stmt = select(self.table.c.data, self.table.c.content_type).where(self.table.c.key == key)
+        async with self.db.connect() as conn:
+            row = (await conn.execute(stmt)).first()
+        if row is None:
             return None
-        return bytes(doc["data"]), doc.get("content_type") or guess_type(key)
+        return bytes(row.data), row.content_type or guess_type(key)
 
 
 class LocalMediaStorage(BaseMediaStorage):
@@ -100,4 +105,4 @@ class LocalMediaStorage(BaseMediaStorage):
 def build_media_storage(settings, db) -> BaseMediaStorage:
     if settings.MEDIA_STORAGE == "local":
         return LocalMediaStorage(settings.MEDIA_DIR, settings.MEDIA_URL_PREFIX)
-    return MongoMediaStorage(db, settings.MEDIA_URL_PREFIX)
+    return DatabaseMediaStorage(db, settings.MEDIA_URL_PREFIX)

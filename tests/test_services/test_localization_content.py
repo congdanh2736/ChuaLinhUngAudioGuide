@@ -208,7 +208,7 @@ class TestUiTextService:
 
 
 class TestPersistence:
-    """Những thứ trước đây nằm trong RAM nay lưu trong MongoDB."""
+    """Những thứ trước đây nằm trong RAM nay lưu trong cơ sở dữ liệu."""
 
     async def test_recover_unfinished_after_restart(self, services, poi, task_runner, repos):
         await services["localization"].schedule_poi(poi.id, ["en", "ja"])
@@ -224,9 +224,7 @@ class TestPersistence:
         await services["localization"].request_language("ko")
         task_runner._queue.clear()
         loc = await repos["localization"].get(poi.id, "ko")
-        await repos["localization"].collection.update_one(
-            {"_id": __import__("bson").ObjectId(loc.id)}, {"$set": {"updated_at": loc.updated_at - timedelta(hours=1)}}
-        )
+        await repos["localization"].update(loc.id, {"updated_at": loc.updated_at - timedelta(hours=1)})
         assert await services["localization"].request_language("ko") == 1
         assert task_runner.pending_count == 1  # bị kẹt quá lâu -> xếp hàng lại
 
@@ -240,11 +238,11 @@ class TestPersistence:
         assert "fr" in stored.translation_requested_at
 
 
-class TestMongoMediaStorage:
+class TestDatabaseMediaStorage:
     async def test_save_get_exists(self, db):
-        from app.integrations.media_storage import MongoMediaStorage
+        from app.integrations.media_storage import DatabaseMediaStorage
 
-        storage = MongoMediaStorage(db, "/media")
+        storage = DatabaseMediaStorage(db, "/media")
         key = storage.audio_key("Xin chào", "vi-VN-HoaiMyNeural")
         assert not await storage.exists(key)
         assert await storage.save(key, b"ID3abc") == f"/media/{key}"

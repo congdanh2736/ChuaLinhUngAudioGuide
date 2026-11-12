@@ -276,9 +276,7 @@ class LocalizationService:
         if loc is None:
             raise NotFoundError(f"POI không có bản dịch '{lang}'", code="LOCALIZATION_NOT_FOUND")
         if loc.status in (LocalizationStatus.PENDING, LocalizationStatus.PROCESSING):
-            raise ConflictError(
-                f"Bản dịch '{lang}' đang được xử lý, hãy đợi xong rồi xóa", code="LOCALIZATION_BUSY"
-            )
+            raise ConflictError(f"Bản dịch '{lang}' đang được xử lý, hãy đợi xong rồi xóa", code="LOCALIZATION_BUSY")
         await self.localization_repo.delete_one(poi_id, lang)
 
     async def overview(self, poi_id: str) -> list[LocalizationOverview]:

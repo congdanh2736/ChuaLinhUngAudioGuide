@@ -9,12 +9,13 @@ Kiến trúc 3 lớp (luồng gọi MỘT CHIỀU, không được đi ngược 
     [Lớp 2 - Business]      app/services/     quy tắc nghiệp vụ
               │
               ▼
-    [Lớp 3 - Data Access]   app/repositories/ (MongoDB) + app/integrations/ (dịch máy, TTS, LLM, thanh toán)
+    [Lớp 3 - Data Access]   app/repositories/ (SQL Server) + app/integrations/ (dịch máy, TTS, LLM, thanh toán)
 
 Chạy:  uvicorn app.main:app --reload
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -27,8 +28,7 @@ from app.api.v1.endpoints import media, mock_gateway
 from app.api.v1.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.logging import setup_logging
-from app.db.indexes import ensure_indexes
-from app.db.mongo import check_connection, create_client, ping
+from app.db.database import DatabaseUnavailableError, open_database
 from app.db.seed import backfill_sample_details, seed_languages, seed_sample_content
 from app.integrations.llm import build_llm
 from app.integrations.media_storage import build_media_storage
@@ -46,9 +46,8 @@ FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 async def init_state(app: FastAPI, settings: Settings, *, db=None, overrides: dict | None = None) -> None:
     """Khởi tạo các thành phần dùng chung, gắn vào app.state để deps.py lấy ra."""
     if db is None:
-        app.state.mongo_client = create_client(settings.MONGO_URI)
-        db = app.state.mongo_client[settings.MONGO_DB_NAME]
-        await check_connection(db, settings.MONGO_URI)
+        db = await open_database(settings.DATABASE_URL)
+        app.state.owns_db = True  # app tự mở kết nối -> tự đóng khi tắt
     app.state.db = db
     app.state.settings = settings
     app.state.translator = build_translator(settings.TRANSLATOR_PROVIDER, mymemory_email=settings.MYMEMORY_EMAIL)
@@ -64,7 +63,7 @@ async def init_state(app: FastAPI, settings: Settings, *, db=None, overrides: di
 
 async def bootstrap_data(app: FastAPI, settings: Settings) -> None:
     db = app.state.db
-    await ensure_indexes(db)
+    await db.create_all()  # Code First: tạo bảng + khóa ngoại + chỉ mục nếu chưa có
     await seed_languages(db)
     auth = AuthService(user_repo=AdminUserRepository(db), settings=settings)
     await auth.ensure_first_admin(settings.FIRST_ADMIN_USERNAME, settings.FIRST_ADMIN_PASSWORD)
@@ -88,15 +87,20 @@ def create_app(settings: Settings | None = None, *, init: bool = True) -> FastAP
     async def lifespan(app: FastAPI):
         if init:
             settings.validate_for_production()
-            await init_state(app, settings)
+            try:
+                await init_state(app, settings)
+            except DatabaseUnavailableError as exc:
+                # Chỉ in nguyên nhân + cách sửa rồi dừng, không in cả trăm dòng traceback của driver/framework
+                logger.error("\n%s\n", exc)
+                logging.shutdown()
+                os._exit(1)
             await bootstrap_data(app, settings)
             logger.info("%s v%s đã sẵn sàng (%s)", settings.APP_NAME, settings.APP_VERSION, settings.APP_ENV)
         yield
         if init:
             await app.state.task_runner.shutdown()
-            client = getattr(app.state, "mongo_client", None)
-            if client is not None:
-                client.close()
+            if getattr(app.state, "owns_db", False):
+                await app.state.db.dispose()
 
     app = FastAPI(
         title=settings.APP_NAME,
@@ -125,7 +129,7 @@ def create_app(settings: Settings | None = None, *, init: bool = True) -> FastAP
 
     @app.get("/health/ready", tags=["Health"], summary="Readiness: kết nối DB OK")
     async def ready():
-        db_ok = await ping(app.state.db)
+        db_ok = await app.state.db.ping()
         from fastapi.responses import JSONResponse
 
         return JSONResponse(
@@ -139,7 +143,7 @@ def create_app(settings: Settings | None = None, *, init: bool = True) -> FastAP
     if settings.MEDIA_STORAGE == "local":
         Path(settings.MEDIA_DIR).mkdir(parents=True, exist_ok=True)
         app.mount(settings.MEDIA_URL_PREFIX, StaticFiles(directory=settings.MEDIA_DIR), name="media")
-    else:  # audio lưu trong MongoDB
+    else:  # audio lưu trong SQL Server (bảng media_files)
         app.include_router(media.router, prefix=settings.MEDIA_URL_PREFIX)
     if FRONTEND_DIR.exists():
         # Mount cuối cùng để không "nuốt" các route API phía trên

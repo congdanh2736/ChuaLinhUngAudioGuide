@@ -1,19 +1,17 @@
 """
 Fixture dùng chung cho test.
 
-Mặc định dùng MongoDB giả lập (mongomock) -> chạy ở đâu cũng được.
-Nếu đặt biến môi trường TEST_MONGO_URI (CI job "integration" làm vậy)
-thì test repository chạy trên MongoDB THẬT.
+Mặc định dùng SQLite (file tạm, BẬT kiểm tra khóa ngoại) -> chạy ở đâu cũng được, không cần cài SQL Server.
+Nếu đặt biến môi trường TEST_DATABASE_URL trỏ tới SQL Server (CI job "integration" làm vậy)
+thì toàn bộ test repository / service chạy trên SQL Server THẬT.
 """
 
 import os
-import uuid
 
 import pytest
-from mongomock_motor import AsyncMongoMockClient
 
 from app.core.config import Settings
-from app.db.indexes import ensure_indexes
+from app.db.database import Database, ensure_database_exists
 from app.db.seed import seed_languages
 from app.integrations.media_storage import LocalMediaStorage
 from app.repositories.repositories import (
@@ -38,7 +36,7 @@ def settings(tmp_path) -> Settings:
     return Settings(
         _env_file=None,
         APP_ENV="test",
-        MONGO_URI="mongomock://test",
+        DATABASE_URL=f"sqlite+aiosqlite:///{tmp_path / 'app.db'}",
         JWT_SECRET="test-secret-key-that-is-long-enough-123",
         TRANSLATOR_PROVIDER="none",
         TTS_PROVIDER="none",
@@ -50,22 +48,19 @@ def settings(tmp_path) -> Settings:
 
 
 @pytest.fixture
-async def db():
-    real_uri = os.getenv("TEST_MONGO_URI")
-    if real_uri:
-        from motor.motor_asyncio import AsyncIOMotorClient
-
-        client = AsyncIOMotorClient(real_uri, tz_aware=True)
-        name = f"test_{uuid.uuid4().hex[:8]}"
-        database = client[name]
-        await ensure_indexes(database)
-        yield database
-        await client.drop_database(name)
-        client.close()
+async def db(tmp_path):
+    real_url = os.getenv("TEST_DATABASE_URL")
+    if real_url:
+        await ensure_database_exists(real_url)
+        database = Database(real_url)
+        await database.drop_all()  # mỗi test bắt đầu với các bảng rỗng
     else:
-        database = AsyncMongoMockClient(tz_aware=True)[f"test_{uuid.uuid4().hex[:8]}"]
-        await ensure_indexes(database)
-        yield database
+        database = Database(f"sqlite+aiosqlite:///{tmp_path / 'test.db'}")
+    await database.create_all()
+    yield database
+    if real_url:
+        await database.drop_all()
+    await database.dispose()
 
 
 @pytest.fixture
