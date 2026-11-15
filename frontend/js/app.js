@@ -24,6 +24,7 @@
   let lastPlayed = {}; // poiId -> lúc phát gần nhất
   let currentPoi = null;
   let playEventSent = false;
+  let preparingPoiId = null; // đang dịch on-demand cho điểm này -> geofence tạm không kích hoạt điểm khác
   let pendingTranslations = 0;
   let pollId = 0;
   let map = null;
@@ -270,13 +271,49 @@
     for (const { poi } of inside) {
       const stayedLongEnough = simulate || now - enteredAt[poi.id] >= DEBOUNCE_MS;
       const notRecent = !lastPlayed[poi.id] || now - lastPlayed[poi.id] > COOLDOWN_MS;
-      if (stayedLongEnough && notRecent && audio.paused) {
+      if (stayedLongEnough && notRecent && audio.paused && !preparingPoiId) {
         lastPlayed[poi.id] = now;
         sendEvent(poi.id, "geofence_enter");
         showMsg(tr("near") + ": " + poi.name);
-        openPoi(poi, { autoplay });
+        if (autoplay && needsLocalization(poi)) prepareAndPlay(poi);
+        else openPoi(poi, { autoplay });
         break;
       }
+    }
+  }
+
+  // Điểm chưa có bản dịch đúng ngôn ngữ khách chọn (hoặc chưa có audio)
+  function needsLocalization(poi) {
+    return poi.is_fallback || !poi.audio_url;
+  }
+
+  // Tới gần 1 điểm chưa có bản dịch: dịch + tạo audio NGAY rồi mới phát,
+  // thay vì phát bằng tiếng Anh. Dịch lỗi (mất mạng, hết quota...) thì mới dùng bản dự phòng.
+  async function prepareAndPlay(poi) {
+    preparingPoiId = poi.id;
+    const requestLang = lang;
+    openPoi(poi, { autoplay: false });
+    showMsg(tr("translating"), 0);
+    try {
+      const { data } = await apiRequest(
+        "/pois/" + poi.id + "/localizations/" + requestLang + "/ensure",
+        { method: "POST", token }
+      );
+      if (requestLang !== lang) return; // khách đã đổi ngôn ngữ trong lúc chờ
+      const idx = bundle.pois.findIndex((p) => p.id === poi.id);
+      if (idx >= 0) bundle.pois[idx] = data;
+      storage.remove("bundle_" + lang);
+      showMsg(tr("translated"));
+      // Khách đã đóng panel hoặc mở điểm khác trong lúc chờ -> không tự phát nữa
+      const stillHere = currentPoi && currentPoi.id === poi.id && !$("#poi-panel").classList.contains("hidden");
+      if (stillHere) openPoi(data, { autoplay: true, silent: true });
+    } catch (err) {
+      if (err.status === 401) return logout(tr("expired"));
+      showMsg(tr("fallbackNote") + " " + langName(poi.served_lang));
+      const stillHere = currentPoi && currentPoi.id === poi.id && !$("#poi-panel").classList.contains("hidden");
+      if (stillHere) openPoi(poi, { autoplay: true, silent: true });
+    } finally {
+      if (preparingPoiId === poi.id) preparingPoiId = null;
     }
   }
 
