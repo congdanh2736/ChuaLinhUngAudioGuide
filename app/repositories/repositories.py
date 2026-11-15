@@ -287,6 +287,26 @@ class AccessSessionRepository(BaseRepository[AccessSession]):
         items = await self.list(filters, sort=[("created_at", -1)], skip=skip, limit=limit)
         return items, await self.count(filters)
 
+    async def mark_expired(self, now: datetime) -> int:
+        """Chuyển sang 'expired' mọi phiên đã quá hạn (1 câu UPDATE). Trả về số phiên được cập nhật.
+
+        - active: quá hạn sử dụng (access_expires_at)
+        - paid:   chưa đổi mã mà quá hạn đổi mã (code_expires_at)
+        """
+        c = self.table.c
+        stmt = (
+            update(self.table)
+            .where(
+                or_(
+                    (c.status == "active") & c.access_expires_at.is_not(None) & (c.access_expires_at < now),
+                    (c.status == "paid") & (c.code_expires_at < now),
+                )
+            )
+            .values(status="expired")
+        )
+        async with self.db.begin() as conn:
+            return (await conn.execute(stmt)).rowcount or 0
+
     async def count_by_status(self) -> dict[str, int]:
         return await _group_count(self.db, self.table.c.status)
 

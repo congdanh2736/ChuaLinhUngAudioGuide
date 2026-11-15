@@ -27,6 +27,7 @@ class StatsService:
         return await self.chat_repo.recent(limit)
 
     async def overview(self) -> StatsOverview:
+        await self.session_repo.mark_expired(utcnow())  # đếm theo trạng thái đúng thời điểm hiện tại
         total_pois = await self.poi_repo.count()
         active_pois = await self.poi_repo.count({"is_active": True})
         active_languages = await self.language_repo.count({"is_active": True})

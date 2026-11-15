@@ -76,6 +76,30 @@ class TestAccessService:
         assert exc.value.code == "ACCESS_EXPIRED"
         assert (await repos["session"].get_by_id(session.id)).status == "expired"
 
+    async def test_overdue_sessions_listed_as_expired(self, services, repos):
+        """Không ai đổi lại mã nhưng đã quá hạn -> danh sách admin vẫn phải hiện 'expired'."""
+        past = utcnow() - timedelta(minutes=1)
+        used, unused, valid = await services["access"].create_cash_codes(staff_id="s", quantity=3)
+        await services["access"].redeem(used.code)
+        await services["access"].redeem(valid.code)
+        await repos["session"].update(used.id, {"access_expires_at": past})  # active nhưng hết hạn sử dụng
+        await repos["session"].update(unused.id, {"code_expires_at": past})  # paid nhưng hết hạn đổi mã
+
+        items, _ = await services["access"].search(status=None, page=1, size=100)
+        status = {s.id: s.status for s in items}
+        assert status[used.id] == "expired"
+        assert status[unused.id] == "expired"
+        assert status[valid.id] == "active"
+
+    async def test_token_rejected_after_access_expires(self, services, repos):
+        (session,) = await services["access"].create_cash_codes(staff_id="s")
+        token, _ = await services["access"].redeem(session.code)
+        await repos["session"].update(session.id, {"access_expires_at": utcnow() - timedelta(minutes=1)})
+        with pytest.raises(UnauthorizedError) as exc:
+            await services["access"].verify_token(token)
+        assert exc.value.code == "ACCESS_EXPIRED"
+        assert (await repos["session"].get_by_id(session.id)).status == "expired"
+
     async def test_revoked_token_rejected(self, services):
         (session,) = await services["access"].create_cash_codes(staff_id="s")
         token, _ = await services["access"].redeem(session.code)

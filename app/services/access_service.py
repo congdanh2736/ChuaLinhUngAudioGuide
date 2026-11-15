@@ -122,9 +122,18 @@ class AccessService:
         session = await self.session_repo.get_by_id(payload["sub"])
         if session is None or session.status != AccessStatus.ACTIVE:
             raise UnauthorizedError("Quyền truy cập không còn hiệu lực", code="ACCESS_REVOKED")
+        if session.access_expires_at and session.access_expires_at < utcnow():
+            await self.session_repo.update(session.id, {"status": AccessStatus.EXPIRED})
+            raise UnauthorizedError("Quyền truy cập đã hết hạn", code="ACCESS_EXPIRED")
         return session
 
+    async def expire_overdue(self) -> int:
+        """Trạng thái lưu trong DB chỉ đổi khi có thao tác -> trước khi đọc danh sách/thống kê,
+        cập nhật các phiên đã quá hạn thành 'expired' để admin thấy đúng trạng thái theo thời gian."""
+        return await self.session_repo.mark_expired(utcnow())
+
     async def search(self, *, status: str | None, page: int, size: int):
+        await self.expire_overdue()
         return await self.session_repo.search(status=status, skip=(page - 1) * size, limit=size)
 
     async def revoke(self, session_id: str) -> AccessSession:
