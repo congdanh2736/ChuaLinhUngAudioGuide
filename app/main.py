@@ -42,7 +42,6 @@ from app.services.task_runner import BackgroundTaskRunner
 logger = logging.getLogger(__name__)
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
-
 async def init_state(app: FastAPI, settings: Settings, *, db=None, overrides: dict | None = None) -> None:
     """Khởi tạo các thành phần dùng chung, gắn vào app.state để deps.py lấy ra."""
     if db is None:
