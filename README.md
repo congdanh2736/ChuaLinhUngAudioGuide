@@ -6,20 +6,20 @@ Du khách quét QR ở cổng chùa → mua quyền truy cập (online hoặc ti
 
 | Thành phần | Công nghệ |
 |---|---|
-| Backend | Python 3.11 – 3.14 · FastAPI · Pydantic v2 |
+| Backend | Python 3.11+ (đã kiểm thử trên 3.11, 3.12, 3.14) · FastAPI · Pydantic v2 |
 | Database | Microsoft SQL Server 2019/2022 (SQLAlchemy 2.0 async + ODBC) — có khóa ngoại, cài trên máy hoặc Docker |
-| Đa ngôn ngữ | deep-translator (Google Translate) · Edge-TTS (giọng đọc Microsoft, miễn phí) |
-| Chatbot | AI tạo sinh (Google Gemini miễn phí / Groq / OpenRouter) + RAG trên tài liệu của chùa, chỉ trả lời trong phạm vi Chùa Linh Ứng |
+| Đa ngôn ngữ | deep-translator (Google Translate, dự phòng MyMemory) · Edge-TTS (giọng đọc Microsoft, miễn phí) |
+| Chatbot | AI tạo sinh qua OpenRouter (cũng hỗ trợ Gemini / Groq) + RAG trên tài liệu của chùa, chỉ trả lời trong phạm vi Chùa Linh Ứng |
 | Frontend | HTML/CSS/JavaScript thuần · Leaflet (bản đồ) |
 | CI/CD | GitHub Actions · Docker · GHCR · Render |
 
 ## Thành viên
 
-| Thành viên | Phụ trách (đề xuất theo lớp) |
+| Thành viên | Phụ trách |
 |---|---|
-| **Trương Công Danh** | Lớp 1 — Presentation: `app/api/`, `tests/test_api/` |
-| **Võ Thành Tài** | Lớp 2 — Business Logic: `app/services/`, `tests/test_services/` |
-| **Nguyễn Lê Tấn Phát** | Lớp 3 — Data Access + CI/CD: `app/repositories/`, `app/integrations/`, `.github/workflows/` |
+| **Võ Thành Tài** | Lớp 1 — Presentation: `app/api/`, `frontend/` (app du khách), `tests/test_api/` |
+| **Nguyễn Lê Tấn Phát** | Lớp 2 — Business Logic: `app/services/`, `tests/test_services/` |
+| **Trương Công Danh** | Lớp 3 — Data Access + CI/CD: `app/db/`, `app/repositories/`, `app/integrations/`, `frontend/admin/admin.js`, `.github/workflows/` |
 
 ---
 
@@ -33,7 +33,7 @@ Du khách quét QR ở cổng chùa → mua quyền truy cập (online hoặc ti
                                         ▼  chỉ gọi Service
                 ┌──────────────────────────────────────────────┐
                 │ LỚP 2 · BUSINESS LOGIC  app/services/        │  quy tắc nghiệp vụ: fallback ngôn ngữ,
-                │   poi · localization · content · tour ·       │  vòng đời mã truy cập, geofence, RAG...
+                │   poi · localization · content · tour ·       │  vòng đời mã truy cập, lộ trình, RAG...
                 │   access · payment · chat · auth · stats      │
                 └───────────────────────┬──────────────────────┘
                                         ▼  chỉ gọi Repository / Integration
@@ -46,6 +46,8 @@ Du khách quét QR ở cổng chùa → mua quyền truy cập (online hoặc ti
 ```
 
 **Quy tắc vàng:** luồng gọi **một chiều** `api → services → repositories`. Router không chứa nghiệp vụ, không chạm DB. Service không biết HTTP (ném `NotFoundError`, lớp API mới đổi thành 404). Chi tiết: [docs/01-kien-truc-3-lop.md](docs/01-kien-truc-3-lop.md).
+
+Riêng **geofence** (theo dõi GPS, ở trong vùng ≥ 3 giây thì tự phát thuyết minh) chạy trên trình duyệt, trong `frontend/js/app.js`; backend chỉ ghi nhận lượt ghé thăm qua `POST /api/v1/events`.
 
 ## Cài đặt & chạy
 
@@ -82,8 +84,11 @@ python -m venv .venv
 # Cài thư viện (mọi thư viện đều có bản cài sẵn, không cần Visual C++/Rust)
 pip install -r requirements-dev.txt
 
-# Tạo file cấu hình (mặc định DATABASE_URL trỏ tới localhost\SQLEXPRESS, đăng nhập bằng tài khoản Windows)
+# Tạo file cấu hình
 copy .env.example .env        # macOS/Linux: cp .env.example .env
+# Mở .env, sửa DATABASE_URL cho đúng SQL Server trên máy (xem Bước 1):
+#   SQL Server Express:  mssql+aioodbc://@localhost\SQLEXPRESS/audio_guide?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+#   LocalDB:             mssql+aioodbc://@(localdb)\MSSQLLocalDB/audio_guide?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
 
 # Chạy server
 uvicorn app.main:app --reload
@@ -94,29 +99,34 @@ server dừng ngay và in hướng dẫn khắc phục.
 
 | Địa chỉ | Nội dung |
 |---|---|
-| http://localhost:8000 | App du khách (mở bằng điện thoại hoặc DevTools chế độ mobile) |
+| http://localhost:8000 | App du khách (mở bằng DevTools chế độ mobile; điện thoại xem lưu ý GPS bên dưới) |
 | http://localhost:8000/admin/ | Dashboard quản trị — `admin` / `admin123` |
 | http://localhost:8000/docs | Swagger — thử trực tiếp các API |
 
-Lần đầu chạy, hệ thống tự tạo 16 ngôn ngữ, tài khoản admin và **dữ liệu mẫu** (6 điểm tham quan, 2 lộ trình, 6 bài viết cho chatbot) — **chỉ một lần**, các lần sau dữ liệu được giữ nguyên.
+Lần đầu chạy, hệ thống tự tạo 16 ngôn ngữ, tài khoản admin và **dữ liệu mẫu** (6 điểm tham quan, 2 lộ trình, 7 bài viết cho chatbot) — **chỉ một lần**, các lần sau dữ liệu được giữ nguyên.
 
-### Thông tin chi tiết từng điểm (tương tụ với Google Maps)
+> **Mở bằng điện thoại thật:** trình duyệt chỉ cho lấy vị trí GPS trên `https://` hoặc `localhost`. Vào bằng `http://192.168.x.x:8000` thì GPS bị chặn, dùng ô **Giả lập GPS** thay thế. Một số trình duyệt (nhất là Safari trên iPhone) có thể chặn tự phát âm thanh; khi đó bấm nút phát trong bảng chi tiết.
+
+### Thông tin chi tiết từng điểm (tương tự Google Maps)
 
 Mỗi điểm tham quan có: **giờ mở cửa theo từng ngày** (nhiều khung/ngày, vd nghỉ trưa), trạng thái **Đang mở cửa / Sắp đóng cửa / Đã đóng cửa**, vé vào cửa, thời gian tham quan gợi ý, tiện ích & quy định, lưu ý (tự dịch 16 ngôn ngữ), biểu đồ **khung giờ đông khách**, nút **Chỉ đường**. Admin nhập ở form sửa điểm tham quan.
 
 - Database tạo từ bản cũ? Lần khởi động sau, hệ thống **tự bổ sung** thông tin mẫu cho 6 điểm mẫu (không đụng điểm admin đã nhập).
 - Biểu đồ đông khách tính từ lượt ghé thăm thật. Muốn demo khi chưa có khách: `python -m app.db.demo_events` (tạo 4 tuần dữ liệu **giả lập**), xóa bằng `python -m app.db.demo_events --clear`.
 
-> Mẹo: Không ở chùa? Trong app tick ô **Giả lập GPS** rồi bấm lên bản đồ để **giả lập vị trí GPS** — đi vào vòng tròn của một điểm, sau ~3 giây app tự mở và phát thuyết minh.
+> Mẹo: Không ở chùa? Trong app tick ô **Giả lập GPS** rồi bấm vào vòng tròn của một điểm trên bản đồ — trong vài giây app tự mở và phát thuyết minh (ô **Tự phát** phải đang bật). Với GPS thật, phải ở trong vùng liên tục ≥ 3 giây mới phát, để tránh GPS nhảy.
 
 ### Bật chatbot AI tạo sinh
 
-1. Vào https://aistudio.google.com/apikey → đăng nhập Google → **Create API key** (miễn phí).
-2. Dán vào file `.env`: `LLM_API_KEY=<key vừa tạo>` (không dấu nháy) rồi khởi động lại server.
-   Key Google có thể bắt đầu bằng `AIza` hoặc dạng khác — đều dùng được. Muốn chắc chắn thì thêm `LLM_PROVIDER=gemini`.
-3. Log khởi động có dòng `Chatbot dùng AI tạo sinh: gemini / gemini-3.8-flash` là đã bật.
+Nhóm dùng **OpenRouter** (`.env.example` đã đặt sẵn `LLM_PROVIDER=openrouter` và một model miễn phí):
 
-Chatbot sẽ trả lời tự nhiên mọi câu hỏi về Chùa Linh Ứng (lịch sử, kiến trúc, Phật giáo, tham quan, đường đi...), nhớ ngữ cảnh vài câu trước, ưu tiên tài liệu do admin nhập, và **từ chối lịch sự** câu hỏi ngoài phạm vi. Không có key thì chatbot vẫn chạy ở chế độ trích đoạn tài liệu.
+1. Vào https://openrouter.ai → đăng nhập → **Keys** → **Create Key** (key dạng `sk-or-...`).
+2. Dán vào file `.env`: `LLM_API_KEY=<key vừa tạo>` (không dấu nháy, không khoảng trắng) rồi khởi động lại server.
+3. Log khởi động có dòng `Chatbot dùng AI tạo sinh: openrouter / <tên model>` là đã bật. Đổi model bằng biến `LLM_MODEL` (tên model lấy trên trang Models của OpenRouter; model có đuôi `:free` là miễn phí nhưng có thể bị giới hạn số lượt).
+
+Muốn dùng nhà cung cấp khác: đặt `LLM_PROVIDER=gemini` (key tại https://aistudio.google.com/apikey) hoặc `LLM_PROVIDER=groq`, và **xóa trống `LLM_MODEL`** để dùng model mặc định của nhà cung cấp đó.
+
+Chatbot trả lời tự nhiên mọi câu hỏi về Chùa Linh Ứng (lịch sử, kiến trúc, Phật giáo, tham quan, đường đi...), nhớ ngữ cảnh vài câu trước, ưu tiên tài liệu do admin nhập, và **từ chối lịch sự** câu hỏi ngoài phạm vi. Không có key hoặc AI lỗi thì chatbot vẫn chạy ở chế độ trích đoạn tài liệu (tìm kiếm BM25).
 
 ### Dữ liệu được lưu ở đâu?
 
@@ -156,7 +166,7 @@ pytest tests/test_repositories      # lớp 3 - truy vấn DB + ràng buộc kh�
 pytest tests/test_e2e.py            # tích hợp đầu-cuối theo kịch bản PRD
 # Chạy toàn bộ test trên SQL Server thật (CI làm vậy) - dùng 1 database RIÊNG cho test vì test xóa sạch bảng:
 #   Windows: $env:TEST_DATABASE_URL="mssql+aioodbc://@localhost\SQLEXPRESS/audio_guide_test?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"; pytest
-pytest --cov                        # đo độ phủ (hiện ~89%)
+pytest --cov                        # đo độ phủ (219 test, hiện ~90%)
 ruff check . && ruff format --check .   # kiểm tra style
 ```
 
@@ -168,7 +178,9 @@ push / PR ─▶ CI: lint ─▶ unit test (Py 3.11 + 3.12, coverage ≥ 80%) �
 merge main ─▶ CD: build image ─▶ push ghcr.io ─▶ Render deploy hook ─▶ kiểm tra /health/ready
 ```
 
-Deploy: image Docker đã cài sẵn ODBC Driver 18; chỉ cần đặt biến `DATABASE_URL` trỏ tới SQL Server (vd Azure SQL Database) trên Render.
+**Hiện trạng:** CI chạy đủ 4 job trên mỗi lần push / Pull Request. CD đã build và đẩy image lên GHCR khi CI trên `main` xanh; **nhóm chưa thuê server**, nên bước gọi Render và kiểm tra `/health/ready` tự bỏ qua (chưa có secret `RENDER_DEPLOY_HOOK_URL`, `APP_URL`).
+
+Muốn deploy thật: tạo Web Service trên Render từ `Dockerfile` (image đã cài sẵn ODBC Driver 18), đặt `DATABASE_URL` trỏ tới một SQL Server trên cloud (vd Azure SQL Database), `APP_ENV=production`, `JWT_SECRET`, `FIRST_ADMIN_PASSWORD`, `PAYMENT_WEBHOOK_SECRET`; rồi thêm 2 secret trên vào GitHub.
 
 ## Cấu trúc thư mục
 
@@ -184,23 +196,21 @@ app/
 └── db/                     # tables.py (lược đồ + khóa ngoại), database.py (kết nối), dữ liệu khởi tạo
 frontend/                   # app du khách + admin/ (HTML/CSS/JS thuần)
 tests/                      # test_api/ · test_services/ · test_repositories/ · test_e2e.py
-docs/                       # tài liệu thiết kế, ERD, use case, API, CI/CD, quy ước, kịch bản demo
+docs/                       # kiến trúc, ERD, use case, đặc tả use case, database/ (sơ đồ + script SQL), bao-cao/
 .github/workflows/          # ci.yml · cd.yml
 ```
 
 ## Tài liệu
 
 1. [Kiến trúc 3 lớp](docs/01-kien-truc-3-lop.md)
-2. [ERD — thiết kế dữ liệu](docs/02-erd.md)
+2. [ERD — thiết kế dữ liệu](docs/02-erd.md) · sơ đồ [docs/database/erd-sqlserver.png](docs/database/erd-sqlserver.png) · script [docs/database/schema-sqlserver.sql](docs/database/schema-sqlserver.sql)
 3. [Use Case](docs/03-use-case.md)
-4. [Danh sách API](docs/04-api-endpoints.md)
-5. [CI/CD & triển khai](docs/05-ci-cd.md)
-6. [Quy ước làm việc nhóm trên GitHub](docs/06-quy-uoc-github.md)
-7. [Kịch bản demo (giữa kỳ / cuối kỳ)](docs/07-kich-ban-demo.md)
-8. [So sánh với project ban đầu (Gap Analysis)](docs/08-gap-analysis.md)
+4. [Đặc tả Use Case](docs/10-dac-ta-use-case.md)
+5. Danh sách API: chạy server rồi mở http://localhost:8000/docs (Swagger, tự sinh từ code)
+6. Báo cáo, DFD, biểu đồ tuần tự: thư mục [docs/bao-cao/](docs/bao-cao/)
 
 ## Lưu ý
 
 - **Dữ liệu mẫu** (tọa độ, nội dung, giờ mở cửa) chỉ để minh họa — cần đo tọa độ thật tại chùa và đối chiếu nội dung với tài liệu chính thức trước khi demo.
 - **Thanh toán** dùng cổng giả lập (không trừ tiền thật) thay cho Payoo trong PRD.
-- Dịch máy và Edge-TTS cần Internet; mất mạng thì app tự lùi về tiếng Anh/tiếng Việt và giọng đọc của trình duyệt.
+- Dịch máy, Edge-TTS và chatbot AI cần Internet; mất mạng thì app tự lùi về tiếng Anh/tiếng Việt, giọng đọc của trình duyệt và chế độ trích đoạn tài liệu.
