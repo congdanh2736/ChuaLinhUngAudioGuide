@@ -181,6 +181,7 @@ class AccessSession(DomainModel):
     paid_at: datetime | None = None
     activated_at: datetime | None = None
     access_expires_at: datetime | None = None  # hạn sử dụng app sau khi kích hoạt
+    activated_now: bool = False  # cờ tạm thời cho response, không lưu vào database
 
 
 class Payment(DomainModel):

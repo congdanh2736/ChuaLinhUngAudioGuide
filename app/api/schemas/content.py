@@ -160,6 +160,7 @@ class AccessTokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_at: datetime
+    message: str | None = None
 
 
 class OnlinePaymentOut(BaseModel):

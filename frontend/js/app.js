@@ -91,6 +91,7 @@
       storage.set("visitor_token", token);
       history.replaceState(null, "", "/");
       await startApp();
+      if (data.message) showMsg(data.message);
     } catch (err) {
       // thanh toán online: webhook có thể về chậm hơn -> thử lại vài lần
       if (err.code === "PAYMENT_PENDING" && attempt < 6) {

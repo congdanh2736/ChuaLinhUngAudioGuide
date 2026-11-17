@@ -93,7 +93,13 @@ async def start_online_payment(service=Depends(get_payment_service)):
 )
 async def redeem_code(body: RedeemRequest, service=Depends(get_access_service)):
     token, session = await service.redeem(body.code)
-    return ok(AccessTokenOut(access_token=token, expires_at=session.access_expires_at))
+    return ok(
+        AccessTokenOut(
+            access_token=token,
+            expires_at=session.access_expires_at,
+            message="hello" if session.activated_now else None,
+        )
+    )
 
 
 @router.get(

@@ -94,6 +94,7 @@ class AccessService:
                     "access_expires_at": now + timedelta(hours=self.settings.VISITOR_TOKEN_HOURS),
                 },
             )
+            session.activated_now = True
         elif session.status == AccessStatus.ACTIVE:
             # Đã kích hoạt: cho đổi lại (vd khách xóa cache trình duyệt) nếu còn hạn
             if session.access_expires_at and session.access_expires_at < now:
