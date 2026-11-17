@@ -1,0 +1,597 @@
+/*
+ * ============================================================================
+ *  components.css  -  KIỂU DÁNG CỦA CÁC "MÓN ĐỒ" DÙNG LẠI NHIỀU LẦN
+ * ============================================================================
+ *
+ *  Gồm: nút bấm, ô nhập (form), thẻ (card), nhãn màu (badge), bảng,
+ *  phân trang, hộp thoại (modal), thông báo nhỏ (toast), hộp báo lỗi...
+ *
+ *  Cách dùng: chỉ cần gắn đúng tên class vào thẻ HTML. Ví dụ:
+ *      <button class="btn btn-primary">Lưu</button>
+ *      <button class="btn btn-danger btn-sm">Xóa</button>
+ *      <span class="badge badge-success">Hoàn tất</span>
+ *
+ *  Mọi màu sắc, khoảng cách đều lấy từ biến trong base.css (var(--...)),
+ *  nên base.css PHẢI được nạp TRƯỚC file này.
+ *
+ *  Các file JS trong assets/js/components/ (toast.js, modal.js, table.js,
+ *  pagination.js) tự tạo ra HTML có sẵn các class ở đây.
+ * ============================================================================
+ */
+
+/* ============================================================================
+ *  1. NÚT BẤM (.btn)
+ *  Luôn có class "btn", rồi thêm 1 class màu: btn-primary / btn-secondary /
+ *  btn-danger / btn-ghost. Muốn nút nhỏ thì thêm btn-sm.
+ * ========================================================================== */
+
+.btn {
+    display: inline-flex;       /* cho phép đặt icon và chữ nằm ngang, căn giữa */
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    height: 36px;
+    padding: 0 var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    font-size: var(--font-size);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    background: transparent;
+    transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.btn:hover { text-decoration: none; }
+
+/* Nút bị khóa (đang xử lý, hoặc không được bấm) */
+.btn:disabled,
+.btn.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none; /* chặn luôn việc bấm */
+}
+
+/* Nút CHÍNH (Lưu, Thêm mới, Đăng nhập): nền xanh chữ trắng */
+.btn-primary {
+    background: var(--color-primary);
+    color: #fff;
+}
+.btn-primary:hover { background: var(--color-primary-hover); }
+
+/* Nút PHỤ (Hủy, Quay lại): nền trắng có viền */
+.btn-secondary {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+.btn-secondary:hover { background: var(--color-surface-hover); border-color: #cfd4dc; }
+
+/* Nút NGUY HIỂM (Xóa, Hủy đơn): màu đỏ */
+.btn-danger {
+    background: var(--color-danger);
+    color: #fff;
+}
+.btn-danger:hover { background: var(--color-danger-hover); }
+
+/* Nút TRONG SUỐT (dùng trong bảng: Sửa, Xem): chỉ có chữ, rê chuột mới hiện nền */
+.btn-ghost {
+    color: var(--color-primary);
+}
+.btn-ghost:hover { background: var(--color-primary-soft); }
+.btn-ghost.btn-danger-text { color: var(--color-danger); }
+.btn-ghost.btn-danger-text:hover { background: var(--color-danger-soft); }
+
+/* Cỡ nhỏ */
+.btn-sm {
+    height: 30px;
+    padding: 0 var(--space-3);
+    font-size: var(--font-size-sm);
+}
+
+/* Nút chỉ có một biểu tượng (ví dụ nút ☰ hay nút ✕), hình vuông */
+.btn-icon {
+    width: 36px;
+    padding: 0;
+    font-size: 18px;
+}
+
+/* Nút dài hết chiều ngang (dùng ở form đăng nhập) */
+.btn-block { width: 100%; }
+
+/* ============================================================================
+ *  2. FORM - ô nhập liệu
+ *  Cấu trúc chuẩn của một ô:
+ *      <div class="form-group">
+ *          <label class="form-label" for="email">Email <span class="required">*</span></label>
+ *          <input class="input" id="email" name="email">
+ *          <div class="form-error"></div>   <- chỗ hiện lỗi màu đỏ
+ *      </div>
+ * ========================================================================== */
+
+.form-group {
+    display: flex;
+    flex-direction: column;     /* nhãn ở trên, ô nhập ở dưới */
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+}
+
+.form-label .required { color: var(--color-danger); } /* dấu * bắt buộc nhập */
+
+/* Ba loại ô nhập dùng chung một kiểu */
+.input,
+.select,
+.textarea {
+    width: 100%;
+    height: 38px;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.textarea {
+    height: auto;
+    min-height: 90px;
+    padding: var(--space-2) var(--space-3);
+    resize: vertical; /* chỉ cho kéo giãn theo chiều dọc */
+}
+
+/* Khi đang gõ vào ô: viền xanh + quầng sáng nhẹ */
+.input:focus,
+.select:focus,
+.textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+    background: var(--color-secondary-soft);
+    color: var(--color-text-muted);
+}
+
+/* Ô bị nhập sai: viền đỏ (JS sẽ thêm class "is-invalid") */
+.input.is-invalid,
+.select.is-invalid,
+.textarea.is-invalid {
+    border-color: var(--color-danger);
+}
+.input.is-invalid:focus,
+.select.is-invalid:focus,
+.textarea.is-invalid:focus {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px var(--color-danger-soft);
+}
+
+/* Dòng chữ lỗi màu đỏ dưới ô nhập. Trống thì tự ẩn. */
+.form-error {
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
+}
+.form-error:empty { display: none; }
+
+/* Dòng gợi ý nhỏ dưới ô nhập */
+.form-hint {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* Ô tick (checkbox) nằm ngang cùng chữ */
+.checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+}
+.checkbox input { width: 16px; height: 16px; }
+
+/* Xếp form thành 2 cột trên màn hình rộng (ví dụ Họ | Tên).
+   Ô nào cần chiếm cả hàng thì thêm class "span-2". */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: var(--space-4);
+}
+.form-grid .span-2 { grid-column: span 2; }
+
+/* ============================================================================
+ *  3. THẺ (.card) - khung nền trắng bo góc để chứa nội dung
+ * ========================================================================== */
+
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.card-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.card-body {
+    padding: var(--space-5);
+}
+
+/* ============================================================================
+ *  4. NHÃN MÀU (.badge) - hiển thị trạng thái
+ *  Hàm statusBadge() trong utils.js tạo sẵn: <span class="badge badge-warning">
+ * ========================================================================== */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;       /* bo tròn hai đầu như viên thuốc */
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-success   { background: var(--color-success-soft);   color: var(--color-success); }
+.badge-warning   { background: var(--color-warning-soft);   color: var(--color-warning); }
+.badge-danger    { background: var(--color-danger-soft);    color: var(--color-danger); }
+.badge-info      { background: var(--color-info-soft);      color: var(--color-info); }
+.badge-secondary { background: var(--color-secondary-soft); color: var(--color-secondary); }
+.badge-primary   { background: var(--color-primary-soft);   color: var(--color-primary); }
+
+/* ============================================================================
+ *  5. THANH CÔNG CỤ trên bảng (ô tìm kiếm, bộ lọc)
+ * ========================================================================== */
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;            /* hẹp quá thì tự xuống dòng */
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Ô tìm kiếm có hình kính lúp vẽ bằng SVG làm ảnh nền ở bên trái */
+.search-input {
+    max-width: 320px;
+    padding-left: 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b7280' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 10px center;
+}
+
+.toolbar .select { width: auto; min-width: 160px; }
+
+/* ============================================================================
+ *  6. BẢNG (.table) - table.js tạo ra cấu trúc này
+ * ========================================================================== */
+
+/* Bọc ngoài bảng: bảng rộng quá thì cuộn ngang, không làm vỡ trang */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;  /* gộp viền của các ô lại làm một */
+}
+
+.table th,
+.table td {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.table th {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;  /* tiêu đề cột viết hoa */
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+    background: var(--color-surface-hover);
+    white-space: nowrap;
+}
+
+.table tbody tr:hover { background: var(--color-surface-hover); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+.table .col-right  { text-align: right; }
+.table .col-center { text-align: center; }
+
+/* Cột chứa các nút Sửa / Xóa */
+.table .table-actions {
+    text-align: right;
+    white-space: nowrap;
+    width: 1%;                  /* co lại vừa đủ chứa các nút */
+}
+.table .table-actions .btn + .btn { margin-left: var(--space-1); }
+
+/* Dòng báo "Không có dữ liệu" / "Đang tải..." */
+.table .table-message {
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+/* Ảnh nhỏ trong bảng (ví dụ ảnh sản phẩm) */
+.table .thumb {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+/* ============================================================================
+ *  7. PHÂN TRANG (.pagination) - pagination.js tạo ra
+ * ========================================================================== */
+
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    border-top: 1px solid var(--color-border);
+}
+
+.pagination:empty { display: none; }
+
+.pagination-info {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.pagination-pages {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-size: var(--font-size-sm);
+}
+.page-btn:hover:not(:disabled) { background: var(--color-surface-hover); }
+.page-btn.is-active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+.page-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Dấu "..." giữa các số trang */
+.page-ellipsis {
+    min-width: 24px;
+    text-align: center;
+    color: var(--color-text-muted);
+    line-height: 32px;
+}
+
+/* ============================================================================
+ *  8. HỘP THOẠI (.modal) - modal.js tạo ra
+ *  Gồm 2 lớp: lớp nền tối phủ cả màn hình (.modal-backdrop) và
+ *  hộp trắng ở giữa (.modal).
+ * ========================================================================== */
+
+.modal-backdrop {
+    position: fixed;            /* dính chặt vào màn hình, cuộn trang cũng không chạy */
+    inset: 0;                   /* phủ kín 4 cạnh */
+    z-index: 1000;              /* nằm trên mọi thứ khác */
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 6vh var(--space-4) var(--space-4);
+    background: rgba(17, 24, 39, 0.45);
+    overflow-y: auto;           /* hộp thoại dài quá thì cuộn được */
+    animation: fade-in 0.15s ease;
+}
+
+.modal {
+    width: 100%;
+    max-width: 520px;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    animation: slide-down 0.18s ease;
+}
+.modal.modal-sm { max-width: 400px; }
+.modal.modal-lg { max-width: 760px; }
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.modal-close {
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--color-text-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+}
+.modal-close:hover { background: var(--color-secondary-soft); color: var(--color-text); }
+
+.modal-body {
+    padding: var(--space-5);
+}
+/* ô cuối cùng trong form không cần khoảng trống phía dưới */
+.modal-body .form-group:last-child { margin-bottom: 0; }
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;  /* các nút dồn sang phải */
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid var(--color-border);
+}
+
+/* Khi đang mở hộp thoại: khóa cuộn trang phía sau (modal.js tự thêm/bỏ class này) */
+body.modal-open { overflow: hidden; }
+
+/* ============================================================================
+ *  9. THÔNG BÁO NHỎ (.toast) - toast.js tạo ra, hiện ở góc trên bên phải
+ * ========================================================================== */
+
+.toast-container {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 1100;              /* nằm trên cả hộp thoại */
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    max-width: calc(100vw - 32px);
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    width: 340px;
+    max-width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-info); /* vạch màu bên trái cho biết loại thông báo */
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    animation: slide-in 0.2s ease;
+}
+
+.toast-success { border-left-color: var(--color-success); }
+.toast-error   { border-left-color: var(--color-danger); }
+.toast-warning { border-left-color: var(--color-warning); }
+.toast-info    { border-left-color: var(--color-info); }
+
+.toast-icon { font-weight: 700; line-height: 1.5; }
+.toast-success .toast-icon { color: var(--color-success); }
+.toast-error   .toast-icon { color: var(--color-danger); }
+.toast-warning .toast-icon { color: var(--color-warning); }
+.toast-info    .toast-icon { color: var(--color-info); }
+
+.toast-message {
+    flex: 1;                    /* chiếm hết phần còn lại */
+    white-space: pre-line;      /* giữ xuống dòng "\n" (nhiều lỗi mỗi lỗi 1 dòng) */
+    word-break: break-word;
+}
+
+.toast-close {
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Lúc biến mất: mờ dần và trượt sang phải */
+.toast.is-leaving {
+    opacity: 0;
+    transform: translateX(16px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* ============================================================================
+ *  10. HỘP BÁO LỖI / THÔNG TIN nằm trong trang (.alert)
+ *      <div class="alert alert-danger">Sai email hoặc mật khẩu</div>
+ * ========================================================================== */
+
+.alert {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    white-space: pre-line;
+}
+.alert:empty { display: none; }
+.alert-danger  { background: var(--color-danger-soft);  border-color: #f5c2c2; color: #9b2c2c; }
+.alert-success { background: var(--color-success-soft); border-color: #b7e4c7; color: #1c6b3c; }
+.alert-info    { background: var(--color-info-soft);    border-color: #bcdcf2; color: #215f8f; }
+
+/* ============================================================================
+ *  11. VÒNG XOAY "ĐANG TẢI"
+ *      <span class="spinner"></span>
+ * ========================================================================== */
+
+.spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-primary); /* chỉ một cạnh có màu -> xoay lên trông như vòng chạy */
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+}
+
+/* ============================================================================
+ *  12. DANH SÁCH THÔNG TIN dạng "Nhãn : Giá trị" (dùng cho trang chi tiết)
+ *      <dl class="info-list">
+ *          <dt>Email</dt><dd>a@gmail.com</dd>
+ *          <dt>Điện thoại</dt><dd>0901...</dd>
+ *      </dl>
+ * ========================================================================== */
+
+.info-list {
+    display: grid;
+    grid-template-columns: 160px 1fr;  /* cột nhãn rộng 160px, cột giá trị lấy phần còn lại */
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+}
+.info-list dt { color: var(--color-text-muted); }
+.info-list dd { margin: 0; font-weight: 500; }
+
+/* ============================================================================
+ *  13. HIỆU ỨNG CHUYỂN ĐỘNG (@keyframes = kịch bản chuyển động)
+ * ========================================================================== */
+
+@keyframes fade-in   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-down { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@keyframes slide-in  { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+@keyframes spin      { to { transform: rotate(360deg); } }
+
+/* ============================================================================
+ *  14. MÀN HÌNH NHỎ (điện thoại) - "@media" = chỉ áp dụng khi màn hình hẹp hơn 640px
+ * ========================================================================== */
+
+@media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }    /* form 2 cột -> 1 cột */
+    .form-grid .span-2 { grid-column: auto; }
+    .info-list { grid-template-columns: 1fr; }
+    .search-input { max-width: none; }
+    .toast { width: 100%; }
+}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lộ trình | Quản trị Chùa Linh Ứng</title>
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+    <style>
+        .chip-list { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-2) 0; }
+        .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 13px; }
+        .chip button { border: 0; background: none; cursor: pointer; color: inherit; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="admin-shell">
+        <aside id="sidebar" class="sidebar"></aside>
+        <div class="admin-main">
+            <header id="topbar" class="topbar"></header>
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h1 id="pageHeading">Lộ trình</h1>
+                        <p class="page-subtitle" id="pageSubtitle">Lộ trình gợi ý gồm nhiều điểm theo thứ tự; tên và mô tả tự dịch sang các ngôn ngữ.</p>
+                    </div>
+                    <div class="page-actions"><button type="button" class="btn btn-primary" id="btnAdd" data-role="admin">+ Thêm lộ trình</button></div>
+                </div>
+                <div class="card">
+                    <div class="toolbar">
+                        <input type="search" class="input search-input" id="searchInput" placeholder="Tìm theo tên hoặc mã...">
+                        <button type="button" class="btn btn-secondary" id="btnReload">Tải lại</button>
+                    </div>
+                    <div id="tableContainer"></div>
+                    <div id="paginationContainer"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="/admin/js/tours/tours.js"></script>
+</body>
+</html>

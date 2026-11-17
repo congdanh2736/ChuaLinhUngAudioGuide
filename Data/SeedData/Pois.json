@@ -1,0 +1,383 @@
+[
+  {
+    "code": "CONG_TAM_QUAN",
+    "name": "Cổng Tam Quan",
+    "description": "Chào mừng bạn đến với Chùa Linh Ứng Bãi Bụt trên bán đảo Sơn Trà, Đà Nẵng. Cổng Tam Quan là cửa ngõ đầu tiên của ngôi chùa. Theo quan niệm Phật giáo, ba lối đi tượng trưng cho Không quan, Vô tướng quan và Vô tác quan - nhắc người bước vào hãy để lại phiền muộn phía sau. Khi đi qua cổng, xin bạn giữ trật tự và ăn mặc lịch sự.",
+    "category": "gate",
+    "latitude": 16.1001,
+    "longitude": 108.27735,
+    "triggerRadiusM": 25,
+    "priority": 5,
+    "sortOrder": 1,
+    "thumbnailUrl": null,
+    "openingHours": [
+      {
+        "day": 0,
+        "open": "05:30",
+        "close": "21:00"
+      },
+      {
+        "day": 1,
+        "open": "05:30",
+        "close": "21:00"
+      },
+      {
+        "day": 2,
+        "open": "05:30",
+        "close": "21:00"
+      },
+      {
+        "day": 3,
+        "open": "05:30",
+        "close": "21:00"
+      },
+      {
+        "day": 4,
+        "open": "05:30",
+        "close": "21:00"
+      },
+      {
+        "day": 5,
+        "open": "05:30",
+        "close": "21:00"
+      },
+      {
+        "day": 6,
+        "open": "05:30",
+        "close": "21:00"
+      }
+    ],
+    "entryFeeVnd": 0,
+    "visitMinutes": 5,
+    "amenities": [
+      "parking",
+      "restroom",
+      "wheelchair",
+      "photo_ok",
+      "dress_code"
+    ],
+    "tips": "Bãi gửi xe nằm ngay cạnh cổng. Nên đến trước 8 giờ sáng hoặc sau 16 giờ để tránh nắng và đông khách. Ngày rằm và mùng một âm lịch chùa rất đông."
+  },
+  {
+    "code": "TUONG_QUAN_AM",
+    "name": "Tượng Phật Bà Quan Thế Âm",
+    "description": "Đây là công trình nổi bật nhất của chùa: tượng Phật Bà Quan Thế Âm cao khoảng 67 mét, đứng trên đài sen lớn, mặt hướng ra biển Đông. Người dân địa phương tin rằng Ngài che chở cho ngư dân ra khơi được bình an. Bên trong tượng có nhiều tầng thờ Phật. Từ chân tượng, bạn có thể ngắm toàn cảnh vịnh Đà Nẵng và thành phố.",
+    "category": "statue",
+    "latitude": 16.10035,
+    "longitude": 108.2779,
+    "triggerRadiusM": 40,
+    "priority": 10,
+    "sortOrder": 2,
+    "thumbnailUrl": null,
+    "openingHours": [
+      {
+        "day": 0,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 1,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 2,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 3,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 4,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 5,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 6,
+        "open": "06:00",
+        "close": "21:00"
+      }
+    ],
+    "entryFeeVnd": 0,
+    "visitMinutes": 20,
+    "amenities": [
+      "stairs",
+      "photo_ok",
+      "shoes_off",
+      "dress_code"
+    ],
+    "tips": "Có nhiều bậc thang lên đài sen, người lớn tuổi nên đi chậm và nghỉ giữa chừng. Buổi trưa nền đá rất nóng, nên mang theo nón và nước uống."
+  },
+  {
+    "code": "CHANH_DIEN",
+    "name": "Chánh điện",
+    "description": "Chánh điện là nơi thờ Phật và diễn ra các nghi lễ chính của chùa. Kiến trúc mang phong cách chùa Việt truyền thống với mái cong lợp ngói và các chi tiết rồng phượng. Khi vào chánh điện, xin bạn bỏ giày dép, giữ yên lặng và không chụp ảnh khi đang có nghi lễ.",
+    "category": "hall",
+    "latitude": 16.1006,
+    "longitude": 108.2776,
+    "triggerRadiusM": 30,
+    "priority": 8,
+    "sortOrder": 3,
+    "thumbnailUrl": null,
+    "openingHours": [
+      {
+        "day": 0,
+        "open": "06:00",
+        "close": "11:30"
+      },
+      {
+        "day": 0,
+        "open": "13:30",
+        "close": "21:00"
+      },
+      {
+        "day": 1,
+        "open": "06:00",
+        "close": "11:30"
+      },
+      {
+        "day": 1,
+        "open": "13:30",
+        "close": "21:00"
+      },
+      {
+        "day": 2,
+        "open": "06:00",
+        "close": "11:30"
+      },
+      {
+        "day": 2,
+        "open": "13:30",
+        "close": "21:00"
+      },
+      {
+        "day": 3,
+        "open": "06:00",
+        "close": "11:30"
+      },
+      {
+        "day": 3,
+        "open": "13:30",
+        "close": "21:00"
+      },
+      {
+        "day": 4,
+        "open": "06:00",
+        "close": "11:30"
+      },
+      {
+        "day": 4,
+        "open": "13:30",
+        "close": "21:00"
+      },
+      {
+        "day": 5,
+        "open": "06:00",
+        "close": "11:30"
+      },
+      {
+        "day": 5,
+        "open": "13:30",
+        "close": "21:00"
+      },
+      {
+        "day": 6,
+        "open": "06:00",
+        "close": "11:30"
+      },
+      {
+        "day": 6,
+        "open": "13:30",
+        "close": "21:00"
+      }
+    ],
+    "entryFeeVnd": 0,
+    "visitMinutes": 15,
+    "amenities": [
+      "shoes_off",
+      "quiet_zone",
+      "no_photo_ceremony",
+      "dress_code"
+    ],
+    "tips": "Chánh điện đóng cửa nghỉ trưa từ 11:30 đến 13:30. Giờ tụng kinh buổi chiều khoảng 18:00, du khách vẫn được vào nhưng cần giữ yên lặng và không chụp ảnh."
+  },
+  {
+    "code": "VUON_LA_HAN",
+    "name": "Vườn tượng Thập Bát La Hán",
+    "description": "Hai bên lối đi là mười tám vị La Hán được tạc bằng đá, mỗi vị một dáng vẻ và biểu cảm riêng. La Hán là những vị đã tu hành đắc đạo, đại diện cho các đức tính như nhẫn nại, trí tuệ và từ bi. Bạn hãy thử quan sát nét mặt của từng vị để cảm nhận sự sinh động của nghệ thuật điêu khắc.",
+    "category": "garden",
+    "latitude": 16.1005,
+    "longitude": 108.2772,
+    "triggerRadiusM": 30,
+    "priority": 6,
+    "sortOrder": 4,
+    "thumbnailUrl": null,
+    "openingHours": [
+      {
+        "day": 0,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 1,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 2,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 3,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 4,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 5,
+        "open": "06:00",
+        "close": "21:00"
+      },
+      {
+        "day": 6,
+        "open": "06:00",
+        "close": "21:00"
+      }
+    ],
+    "entryFeeVnd": 0,
+    "visitMinutes": 10,
+    "amenities": [
+      "wheelchair",
+      "shade",
+      "photo_ok"
+    ],
+    "tips": "Lối đi bằng phẳng, xe lăn và xe đẩy em bé đi được. Không trèo lên bệ tượng để chụp ảnh."
+  },
+  {
+    "code": "VUON_BONSAI",
+    "name": "Vườn cây cảnh",
+    "description": "Khuôn viên chùa có nhiều cây cảnh và bonsai được chăm sóc công phu, tạo nên không gian xanh mát và thanh tịnh. Đây là nơi lý tưởng để nghỉ chân, chụp ảnh và tận hưởng gió biển. Xin đừng bẻ cành hay hái lá để giữ gìn cảnh quan chung.",
+    "category": "garden",
+    "latitude": 16.10075,
+    "longitude": 108.27735,
+    "triggerRadiusM": 30,
+    "priority": 3,
+    "sortOrder": 5,
+    "thumbnailUrl": null,
+    "openingHours": [
+      {
+        "day": 0,
+        "open": "06:00",
+        "close": "18:00"
+      },
+      {
+        "day": 1,
+        "open": "06:00",
+        "close": "18:00"
+      },
+      {
+        "day": 2,
+        "open": "06:00",
+        "close": "18:00"
+      },
+      {
+        "day": 3,
+        "open": "06:00",
+        "close": "18:00"
+      },
+      {
+        "day": 4,
+        "open": "06:00",
+        "close": "18:00"
+      },
+      {
+        "day": 5,
+        "open": "06:00",
+        "close": "18:00"
+      },
+      {
+        "day": 6,
+        "open": "06:00",
+        "close": "18:00"
+      }
+    ],
+    "entryFeeVnd": 0,
+    "visitMinutes": 10,
+    "amenities": [
+      "shade",
+      "restroom",
+      "drinking_water",
+      "photo_ok"
+    ],
+    "tips": "Có ghế đá nghỉ chân dưới bóng cây. Nhà vệ sinh ở cuối vườn, gần lối ra bãi xe."
+  },
+  {
+    "code": "DIEM_NGAM_VINH",
+    "name": "Điểm ngắm vịnh Đà Nẵng",
+    "description": "Từ điểm này bạn có thể nhìn bao quát vịnh Đà Nẵng, bãi biển Mỹ Khê và ở xa là dãy núi Ngũ Hành Sơn. Buổi sáng sớm và lúc hoàng hôn là thời điểm đẹp nhất để chụp ảnh. Hãy cẩn thận khi đứng gần lan can.",
+    "category": "viewpoint",
+    "latitude": 16.1,
+    "longitude": 108.2783,
+    "triggerRadiusM": 35,
+    "priority": 4,
+    "sortOrder": 6,
+    "thumbnailUrl": null,
+    "openingHours": [
+      {
+        "day": 0,
+        "open": "05:00",
+        "close": "21:00"
+      },
+      {
+        "day": 1,
+        "open": "05:00",
+        "close": "21:00"
+      },
+      {
+        "day": 2,
+        "open": "05:00",
+        "close": "21:00"
+      },
+      {
+        "day": 3,
+        "open": "05:00",
+        "close": "21:00"
+      },
+      {
+        "day": 4,
+        "open": "05:00",
+        "close": "21:00"
+      },
+      {
+        "day": 5,
+        "open": "05:00",
+        "close": "21:00"
+      },
+      {
+        "day": 6,
+        "open": "05:00",
+        "close": "21:00"
+      }
+    ],
+    "entryFeeVnd": 0,
+    "visitMinutes": 15,
+    "amenities": [
+      "photo_ok",
+      "wheelchair"
+    ],
+    "tips": "Đẹp nhất lúc bình minh (khoảng 5:15 - 6:00) và hoàng hôn. Gió biển khá mạnh, giữ chặt điện thoại và mũ nón khi đứng gần lan can."
+  }
+]

@@ -1,0 +1,374 @@
+/*
+ * ============================================================================
+ *  admin.css  -  BỐ CỤC RIÊNG CỦA KHU QUẢN TRỊ (/admin/...)
+ * ============================================================================
+ *
+ *  Khung một trang admin trông như sau:
+ *
+ *   ┌────────────┬──────────────────────────────────────────┐
+ *   │            │  TOPBAR (☰  Tiêu đề trang      Tên  Đăng xuất)
+ *   │  SIDEBAR   ├──────────────────────────────────────────┤
+ *   │  (menu)    │                                          │
+ *   │            │  NỘI DUNG TRANG (.admin-content)         │
+ *   │            │                                          │
+ *   └────────────┴──────────────────────────────────────────┘
+ *
+ *  HTML tương ứng (xem admin/_template.html):
+ *    <div class="admin-shell">
+ *        <aside id="sidebar" class="sidebar"></aside>     <- layout.js tự đổ menu vào
+ *        <div class="admin-main">
+ *            <header id="topbar" class="topbar"></header> <- layout.js tự đổ vào
+ *            <main class="admin-content"> ... </main>
+ *        </div>
+ *    </div>
+ *
+ *  Trên điện thoại: sidebar ẩn sang trái, bấm nút ☰ mới trượt ra.
+ *
+ *  Phần cuối file là kiểu dáng của trang ĐĂNG NHẬP admin.
+ * ============================================================================
+ */
+
+/* ============================================================================
+ *  1. KHUNG TỔNG
+ * ========================================================================== */
+
+/* Trong lúc layout.js còn đang kiểm tra đăng nhập thì ẨN khung đi,
+   tránh việc người chưa đăng nhập kịp thấy nội dung rồi mới bị đẩy ra.
+   layout.js kiểm tra xong sẽ thêm class "is-ready" để hiện lên. */
+.admin-shell {
+    display: flex;
+    min-height: 100vh;          /* cao ít nhất bằng màn hình */
+    visibility: hidden;
+}
+.admin-shell.is-ready {
+    visibility: visible;
+}
+
+.admin-main {
+    flex: 1;                    /* chiếm hết phần còn lại bên phải sidebar */
+    min-width: 0;               /* cho phép co lại, tránh bảng rộng làm tràn trang */
+    display: flex;
+    flex-direction: column;
+    margin-left: var(--sidebar-width); /* chừa chỗ cho sidebar (sidebar đứng yên bên trái) */
+}
+
+.admin-content {
+    flex: 1;
+    width: 100%;
+    max-width: 1400px;
+    padding: var(--space-5);
+}
+
+/* ============================================================================
+ *  2. SIDEBAR - menu bên trái
+ * ========================================================================== */
+
+.sidebar {
+    position: fixed;            /* đứng yên, cuộn trang không chạy theo */
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 900;
+    width: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    background: #161b2e;        /* nền tối cho sidebar */
+    color: #c9cfdd;
+    overflow-y: auto;           /* menu dài thì cuộn được */
+    transition: transform 0.2s ease;
+}
+
+/* Logo / tên cửa hàng trên cùng */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: var(--topbar-height);
+    padding: 0 var(--space-5);
+    color: #fff;
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.sidebar-brand:hover { text-decoration: none; }
+
+.sidebar-brand-mark {
+    display: inline-grid;
+    place-items: center;        /* căn chữ vào chính giữa ô vuông */
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius);
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 14px;
+}
+
+.sidebar-nav {
+    padding: var(--space-3) var(--space-3) var(--space-5);
+}
+
+/* Tiêu đề nhóm menu: "BÁN HÀNG", "SẢN PHẨM"... */
+.nav-group-title {
+    margin: var(--space-4) var(--space-3) var(--space-1);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6f7891;
+}
+
+/* Một mục menu */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 9px var(--space-3);
+    border-radius: var(--radius);
+    color: #c9cfdd;
+    transition: background var(--transition), color var(--transition);
+}
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Mục đang mở (layout.js tự thêm class "is-active" dựa theo địa chỉ trang) */
+.nav-link.is-active {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+/* Biểu tượng nhỏ trước mỗi mục menu (vẽ bằng SVG trong sidebar.html).
+   stroke: currentColor = nét vẽ lấy theo màu chữ, nên đổi màu chữ là icon đổi theo. */
+.nav-icon {
+    flex-shrink: 0;             /* không bị bóp nhỏ lại */
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ============================================================================
+ *  3. TOPBAR - thanh ngang trên cùng
+ * ========================================================================== */
+
+.topbar {
+    position: sticky;           /* cuộn xuống vẫn dính ở trên cùng */
+    top: 0;
+    z-index: 800;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    height: var(--topbar-height);
+    padding: 0 var(--space-5);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Nút ☰ mở menu - chỉ hiện trên màn hình nhỏ (xem phần @media cuối file) */
+.topbar-toggle {
+    display: none;
+    border: none;
+    background: transparent;
+}
+
+.topbar-title {
+    flex: 1;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;    /* tiêu đề dài quá thì hiện "..." */
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+/* Vòng tròn chữ cái đầu của tên người dùng */
+.user-avatar {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+.user-name { font-weight: 600; }
+.user-role { font-size: 12px; color: var(--color-text-muted); }
+
+/* ============================================================================
+ *  4. ĐẦU TRANG: tiêu đề + các nút bên phải (ví dụ "+ Thêm mới")
+ *      <div class="page-header">
+ *          <div><h1>Khách hàng</h1><p class="page-subtitle">...</p></div>
+ *          <div class="page-actions"><button class="btn btn-primary">+ Thêm</button></div>
+ *      </div>
+ * ========================================================================== */
+
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+.page-subtitle {
+    margin-top: var(--space-1);
+    color: var(--color-text-muted);
+}
+
+.page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+/* Đường dẫn nhỏ phía trên tiêu đề, ví dụ:  Khách hàng / Chi tiết */
+.breadcrumb {
+    margin-bottom: var(--space-1);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+/* Các khối nội dung xếp dọc cách nhau đều (trang chi tiết có nhiều card) */
+.stack > * + * { margin-top: var(--space-5); }
+
+/* Lưới 2 cột cho trang chi tiết: trái thông tin, phải lịch sử... */
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+}
+
+/* ============================================================================
+ *  5. Ô THỐNG KÊ (dùng cho dashboard / trang thống kê)
+ *      <div class="stat-grid">
+ *          <div class="stat-card">
+ *              <div class="stat-label">Doanh thu hôm nay</div>
+ *              <div class="stat-value">12.500.000 ₫</div>
+ *          </div>
+ *      </div>
+ * ========================================================================== */
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* tự chia số cột theo độ rộng */
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+.stat-card {
+    padding: var(--space-4) var(--space-5);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-label {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.stat-value {
+    margin-top: var(--space-1);
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+}
+
+/* ============================================================================
+ *  6. MÀN HÌNH NHỎ (dưới 900px): sidebar ẩn đi, bấm ☰ mới hiện
+ * ========================================================================== */
+
+/* Lớp nền tối phía sau sidebar khi mở trên điện thoại (bấm vào để đóng) */
+.sidebar-overlay {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        transform: translateX(-100%); /* đẩy sidebar ra ngoài mép trái màn hình */
+    }
+
+    /* layout.js thêm class "sidebar-open" vào <body> khi bấm ☰ */
+    body.sidebar-open .sidebar {
+        transform: none;
+    }
+    body.sidebar-open .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 850;
+        background: rgba(17, 24, 39, 0.4);
+    }
+
+    .admin-main { margin-left: 0; }
+    .topbar-toggle { display: inline-flex; }
+    .admin-content { padding: var(--space-4); }
+    .user-info { display: none; }     /* màn hình hẹp chỉ hiện vòng tròn chữ cái */
+    .grid-2 { grid-template-columns: 1fr; }
+}
+
+/* ============================================================================
+ *  7. TRANG ĐĂNG NHẬP ADMIN (admin/login.html)
+ * ========================================================================== */
+
+.login-page {
+    display: grid;
+    place-items: center;        /* đặt khung đăng nhập vào giữa màn hình */
+    min-height: 100vh;
+    padding: var(--space-4);
+    background:
+        radial-gradient(circle at 15% 20%, rgba(47, 91, 234, 0.12), transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(47, 91, 234, 0.10), transparent 40%),
+        var(--color-bg);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.login-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+}
+
+.login-title {
+    margin-bottom: var(--space-1);
+}
+
+.login-subtitle {
+    margin-bottom: var(--space-5);
+    color: var(--color-text-muted);
+}
+
+.login-card .alert {
+    margin-bottom: var(--space-4);
+}

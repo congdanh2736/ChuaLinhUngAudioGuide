@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài khoản | Quản trị Chùa Linh Ứng</title>
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-shell">
+        <aside id="sidebar" class="sidebar"></aside>
+        <div class="admin-main">
+            <header id="topbar" class="topbar"></header>
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h1 id="pageHeading">Tài khoản</h1>
+                        <p class="page-subtitle" id="pageSubtitle">Admin: toàn quyền · Nhân viên: bán vé tiền mặt, xem dữ liệu.</p>
+                    </div>
+                    <div class="page-actions"><button type="button" class="btn btn-primary" id="btnAdd">+ Thêm tài khoản</button></div>
+                </div>
+                <div class="card"><div id="tableContainer"></div></div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="/admin/js/users/users.js"></script>
+</body>
+</html>

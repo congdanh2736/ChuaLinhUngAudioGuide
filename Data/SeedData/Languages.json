@@ -1,0 +1,130 @@
+[
+  {
+    "code": "vi",
+    "name": "Vietnamese",
+    "nativeName": "Tiếng Việt",
+    "translatorCode": "vi",
+    "ttsVoice": "vi-VN-HoaiMyNeural",
+    "sortOrder": 0
+  },
+  {
+    "code": "en",
+    "name": "English",
+    "nativeName": "English",
+    "translatorCode": "en",
+    "ttsVoice": "en-US-JennyNeural",
+    "sortOrder": 1
+  },
+  {
+    "code": "zh",
+    "name": "Chinese",
+    "nativeName": "中文",
+    "translatorCode": "zh-CN",
+    "ttsVoice": "zh-CN-XiaoxiaoNeural",
+    "sortOrder": 2
+  },
+  {
+    "code": "ja",
+    "name": "Japanese",
+    "nativeName": "日本語",
+    "translatorCode": "ja",
+    "ttsVoice": "ja-JP-NanamiNeural",
+    "sortOrder": 3
+  },
+  {
+    "code": "ko",
+    "name": "Korean",
+    "nativeName": "한국어",
+    "translatorCode": "ko",
+    "ttsVoice": "ko-KR-SunHiNeural",
+    "sortOrder": 4
+  },
+  {
+    "code": "fr",
+    "name": "French",
+    "nativeName": "Français",
+    "translatorCode": "fr",
+    "ttsVoice": "fr-FR-DeniseNeural",
+    "sortOrder": 5
+  },
+  {
+    "code": "de",
+    "name": "German",
+    "nativeName": "Deutsch",
+    "translatorCode": "de",
+    "ttsVoice": "de-DE-KatjaNeural",
+    "sortOrder": 6
+  },
+  {
+    "code": "es",
+    "name": "Spanish",
+    "nativeName": "Español",
+    "translatorCode": "es",
+    "ttsVoice": "es-ES-ElviraNeural",
+    "sortOrder": 7
+  },
+  {
+    "code": "ru",
+    "name": "Russian",
+    "nativeName": "Русский",
+    "translatorCode": "ru",
+    "ttsVoice": "ru-RU-SvetlanaNeural",
+    "sortOrder": 8
+  },
+  {
+    "code": "th",
+    "name": "Thai",
+    "nativeName": "ไทย",
+    "translatorCode": "th",
+    "ttsVoice": "th-TH-PremwadeeNeural",
+    "sortOrder": 9
+  },
+  {
+    "code": "it",
+    "name": "Italian",
+    "nativeName": "Italiano",
+    "translatorCode": "it",
+    "ttsVoice": "it-IT-ElsaNeural",
+    "sortOrder": 10
+  },
+  {
+    "code": "pt",
+    "name": "Portuguese",
+    "nativeName": "Português",
+    "translatorCode": "pt",
+    "ttsVoice": "pt-BR-FranciscaNeural",
+    "sortOrder": 11
+  },
+  {
+    "code": "id",
+    "name": "Indonesian",
+    "nativeName": "Bahasa Indonesia",
+    "translatorCode": "id",
+    "ttsVoice": "id-ID-GadisNeural",
+    "sortOrder": 12
+  },
+  {
+    "code": "ms",
+    "name": "Malay",
+    "nativeName": "Bahasa Melayu",
+    "translatorCode": "ms",
+    "ttsVoice": "ms-MY-YasminNeural",
+    "sortOrder": 13
+  },
+  {
+    "code": "hi",
+    "name": "Hindi",
+    "nativeName": "हिन्दी",
+    "translatorCode": "hi",
+    "ttsVoice": "hi-IN-SwaraNeural",
+    "sortOrder": 14
+  },
+  {
+    "code": "ar",
+    "name": "Arabic",
+    "nativeName": "العربية",
+    "translatorCode": "ar",
+    "ttsVoice": "ar-SA-ZariyahNeural",
+    "sortOrder": 15
+  }
+]

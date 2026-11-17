@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập | Quản trị Chùa Linh Ứng</title>
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <main class="login-page">
+        <div class="login-card">
+            <div class="login-brand">
+                <span class="sidebar-brand-mark">LU</span>
+                <span>Chùa Linh Ứng</span>
+            </div>
+            <h1 class="login-title">Đăng nhập quản trị</h1>
+            <p class="login-subtitle">Dành cho quản trị viên và nhân viên quầy vé.</p>
+            <div class="alert alert-danger" id="loginError" role="alert"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="userName">Tên đăng nhập</label>
+                    <input class="input" id="userName" name="userName" placeholder="admin" autocomplete="username" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Mật khẩu</label>
+                    <input class="input" type="password" id="password" name="password" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="btnLogin">Đăng nhập</button>
+            </form>
+            <p class="text-muted text-sm mt-4"><a href="/">← Về app du khách</a></p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { authApi } from "../assets/js/api/authApi.js";
+        import { saveLogin, isLoggedIn, redirectAfterLogin } from "../assets/js/core/auth.js";
+        import { setLoading } from "../assets/js/core/utils.js";
+
+        // Đã đăng nhập rồi thì vào thẳng trang quản trị
+        if (isLoggedIn()) redirectAfterLogin();
+
+        const form = document.getElementById("loginForm");
+        const errorBox = document.getElementById("loginError");
+        const button = document.getElementById("btnLogin");
+
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+            errorBox.textContent = "";
+            setLoading(button, true, "Đang đăng nhập...");
+            try {
+                // POST /api/auth/login -> AuthController -> AuthService (Identity kiểm tra mật khẩu) -> token JWT
+                const result = await authApi.login(form.userName.value.trim(), form.password.value);
+                saveLogin(result);
+                redirectAfterLogin();
+            } catch (err) {
+                errorBox.textContent = err.message;
+                form.password.value = "";
+                form.password.focus();
+            } finally {
+                setLoading(button, false);
+            }
+        });
+    </script>
+</body>
+</html>
