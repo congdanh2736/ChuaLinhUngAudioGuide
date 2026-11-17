@@ -2,7 +2,7 @@
 
 import logging
 
-from app.core.exceptions import NotFoundError, UnauthorizedError
+from app.core.exceptions import BusinessRuleError, NotFoundError, UnauthorizedError
 from app.core.security import utcnow
 from app.models.domain import AccessMethod, AccessSession, AccessStatus, Payment, PaymentStatus
 
@@ -37,6 +37,36 @@ class PaymentService:
             raise NotFoundError("Không tìm thấy giao dịch", code="PAYMENT_NOT_FOUND")
         session = await self.session_repo.get_by_id(payment.session_id)
         return payment, session
+
+    def base_price(self) -> int:
+        return self.access_service.settings.ACCESS_PRICE_VND
+
+    def find_discount(self, code: str) -> tuple[str, int] | None:
+        """Tìm mã giảm giá (không phân biệt hoa thường). Trả về (mã chuẩn, % giảm) hoặc None."""
+        wanted = (code or "").strip().upper()
+        for name, percent in self.access_service.settings.DISCOUNT_CODES.items():
+            if name.upper() == wanted and 0 < percent <= 100:
+                return name.upper(), percent
+        return None
+
+    async def apply_discount(self, payment_id: str, code: str) -> tuple[Payment, int]:
+        """
+        Áp mã giảm giá cho giao dịch đang chờ thanh toán.
+        Luôn tính lại từ giá gốc nên nhập mã khác chỉ thay mã cũ, không cộng dồn.
+        Cập nhật cả payment lẫn phiên truy cập để thống kê doanh thu đúng số tiền thực thu.
+        """
+        payment, session = await self.get_payment(payment_id)
+        if payment.status != PaymentStatus.PENDING:
+            raise BusinessRuleError("Giao dịch đã xử lý, không thể áp mã giảm giá", code="PAYMENT_NOT_PENDING")
+        found = self.find_discount(code)
+        if found is None:
+            raise BusinessRuleError("Mã giảm giá không hợp lệ", code="INVALID_DISCOUNT_CODE")
+        name, percent = found
+        amount = self.base_price() * (100 - percent) // 100
+        payment = await self.payment_repo.update(payment.id, {"amount": amount})
+        await self.session_repo.update(session.id, {"amount": amount, "note": f"Mã giảm giá {name} (-{percent}%)"})
+        logger.info("Giao dịch %s áp mã %s -> %s", payment.id, name, amount)
+        return payment, percent
 
     async def handle_webhook(self, payload: dict, signature: str) -> Payment:
         """

@@ -152,6 +152,21 @@ class TestPaymentService:
         with pytest.raises(BusinessRuleError):
             await services["access"].redeem(session.code)
 
+    async def test_apply_discount(self, payment, repos, settings):
+        service, gateway = payment
+        session, pay, _ = await service.start_online_payment()
+        pay, percent = await service.apply_discount(pay.id, " 10% ")
+        assert percent == 10 and pay.amount == settings.ACCESS_PRICE_VND * 90 // 100
+        pay, _ = await service.apply_discount(pay.id, "20%")  # đổi mã -> tính lại từ giá gốc, không cộng dồn
+        assert pay.amount == settings.ACCESS_PRICE_VND * 80 // 100
+        assert (await repos["session"].get_by_id(session.id)).amount == pay.amount
+        with pytest.raises(BusinessRuleError):
+            await service.apply_discount(pay.id, "KHONGCO")
+        done = {"payment_id": pay.id, "status": "success"}
+        await service.handle_webhook(done, gateway.sign(done))
+        with pytest.raises(BusinessRuleError):
+            await service.apply_discount(pay.id, "10%")
+
 
 class TestAuthService:
     async def test_first_admin_and_login(self, services):

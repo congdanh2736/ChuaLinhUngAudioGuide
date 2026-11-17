@@ -192,3 +192,12 @@ def test_data_survives_restart_and_unfinished_translations_resume(e2e_settings):
                 break
             time.sleep(0.1)
         assert ja["status"] == "failed" and "tắt" in ja["error"]
+
+
+def test_discount_code_on_payment_page(e2e):
+    client, _ = e2e
+    payment = client.post("/api/v1/access/online").json()["data"]
+    page = client.post(f"/mock-gateway/{payment['payment_id']}/discount", data={"code": "20%"})
+    assert "giảm 20%" in page.text and "40.000 đ" in page.text and "class='old'>50.000 đ" in page.text
+    page = client.post(f"/mock-gateway/{payment['payment_id']}/discount", data={"code": "KHONGCO"})
+    assert "Mã giảm giá không hợp lệ" in page.text
