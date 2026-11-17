@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thuyết minh Chùa Linh Ứng</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/visitor.css">
+</head>
+<body>
+    <!-- ============ Màn hình mua vé / nhập mã ============ -->
+    <div id="gate" class="hidden">
+        <header class="v-header">
+            <span class="v-title" data-i18n="appTitle">Thuyết minh Chùa Linh Ứng</span>
+            <select class="select lang-select" aria-label="Language"></select>
+        </header>
+        <main class="v-gate">
+            <p data-i18n="gateIntro">Nghe thuyết minh tự động khi bạn đi tới từng điểm tham quan.</p>
+            <div class="card card-body">
+                <div class="flex flex-between">
+                    <span data-i18n="priceLabel">Giá vé</span><span class="v-price" id="price">50.000 đ</span>
+                </div>
+                <div class="text-muted"><span data-i18n="durationLabel">Thời gian dùng</span>: <b id="hours">24</b> <span data-i18n="hours">giờ</span></div>
+                <button type="button" class="btn btn-primary btn-block mt-4" id="btnPayOnline" data-i18n="payOnline">Thanh toán online</button>
+            </div>
+            <div class="card card-body">
+                <div class="fw-bold mb-2" data-i18n="haveCode">Đã có mã truy cập</div>
+                <p class="text-muted text-sm" data-i18n="cashHint">Trả tiền mặt tại quầy vé, nhân viên sẽ đưa bạn mã 6 ký tự.</p>
+                <form class="v-redeem mt-2" id="redeemForm">
+                    <input class="input" id="codeInput" maxlength="12" autocomplete="off" placeholder="AB3K9Q">
+                    <button type="submit" class="btn btn-secondary" data-i18n="enter">Vào</button>
+                </form>
+            </div>
+            <p class="text-danger mt-4" id="gateMsg"></p>
+            <p class="text-sm text-muted mt-4"><a href="/admin/login.html">Quản trị</a></p>
+        </main>
+    </div>
+
+    <!-- ============ App chính ============ -->
+    <div id="app" class="hidden">
+        <header class="v-header">
+            <span class="v-title" data-i18n="shortTitle">Chùa Linh Ứng</span>
+            <select class="select lang-select" aria-label="Language"></select>
+        </header>
+        <nav class="v-tabs">
+            <button type="button" data-view="map" class="is-active" data-i18n="tabMap">Bản đồ</button>
+            <button type="button" data-view="list" data-i18n="tabList">Danh sách</button>
+            <button type="button" data-view="route" data-i18n="tabRoute">Lộ trình</button>
+            <button type="button" data-view="chat" data-i18n="tabChat">Hỏi đáp</button>
+        </nav>
+        <div id="msgBar" class="v-msg hidden"></div>
+
+        <section id="view-map" class="v-view is-active">
+            <div class="v-toolbar">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnLocate" data-i18n="myLocation">Vị trí của tôi</button>
+                <label class="checkbox"><input type="checkbox" id="chkSimulate"> <span data-i18n="simulate">Giả lập GPS</span></label>
+                <label class="checkbox"><input type="checkbox" id="chkAutoplay" checked> <span data-i18n="auto">Tự phát</span></label>
+                <span class="v-gps" id="gpsStatus"></span>
+            </div>
+            <div id="map"></div>
+        </section>
+
+        <section id="view-list" class="v-view">
+            <ul class="v-list" id="poiList"></ul>
+        </section>
+
+        <section id="view-route" class="v-view">
+            <div class="v-pad">
+                <label class="form-label" for="tourSelect" data-i18n="chooseTour">Chọn lộ trình</label>
+                <div class="flex" style="gap:8px">
+                    <select class="select" id="tourSelect"></select>
+                    <button type="button" class="btn btn-primary" id="btnRecommend" data-i18n="suggestRoute">Gợi ý thứ tự đi</button>
+                </div>
+                <p class="text-muted mt-4" id="routeSummary"></p>
+                <ol class="v-route" id="routeList"></ol>
+            </div>
+        </section>
+
+        <section id="view-chat" class="v-view">
+            <div class="v-chat-log" id="chatLog"></div>
+            <form class="v-chat-form" id="chatForm">
+                <input class="input" id="chatInput" maxlength="500" autocomplete="off">
+                <button type="submit" class="btn btn-primary" data-i18n="send">Gửi</button>
+            </form>
+        </section>
+
+        <!-- Bảng thông tin 1 điểm -->
+        <div id="poiPanel" class="v-panel hidden">
+            <div class="v-panel-head">
+                <b id="poiTitle"></b>
+                <button type="button" class="btn btn-secondary btn-sm" id="btnPoiClose" data-i18n="close">Đóng</button>
+            </div>
+            <div id="poiMeta" class="text-sm"></div>
+            <p id="poiNote" class="v-note hidden"></p>
+            <audio id="audio" controls preload="none"></audio>
+            <div class="v-actions" id="poiActions"></div>
+            <p class="v-desc" id="poiDesc"></p>
+            <div class="v-details" id="poiDetails"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script type="module" src="/visitor/js/main.js"></script>
+</body>
+</html>

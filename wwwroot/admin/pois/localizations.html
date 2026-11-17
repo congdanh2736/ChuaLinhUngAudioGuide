@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bản dịch và audio | Quản trị Chùa Linh Ứng</title>
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+    <style>audio { height: 32px; max-width: 220px; }</style>
+</head>
+<body>
+    <div class="admin-shell">
+        <aside id="sidebar" class="sidebar"></aside>
+        <div class="admin-main">
+            <header id="topbar" class="topbar"></header>
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h1 id="pageHeading">Bản dịch và audio</h1>
+                        <p class="page-subtitle" id="pageSubtitle">Trạng thái dịch máy + giọng đọc của điểm theo từng ngôn ngữ.</p>
+                    </div>
+                    <div class="page-actions"><a class="btn btn-secondary" href="/admin/pois/pois.html">← Danh sách</a>
+                        <button type="button" class="btn btn-secondary" id="btnMissing" data-role="admin">Dịch các ngôn ngữ còn thiếu</button>
+                        <button type="button" class="btn btn-secondary" id="btnForce" data-role="admin">Dịch lại toàn bộ (ghi đè)</button>
+                        <button type="button" class="btn btn-danger" id="btnDeleteAll" data-role="admin">Xóa toàn bộ bản dịch</button></div>
+                </div>
+                <div class="card">
+                    <div class="toolbar"><span class="text-muted text-sm" id="busyText"></span></div>
+                    <div id="tableContainer"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="/admin/js/pois/localizations.js"></script>
+</body>
+</html>

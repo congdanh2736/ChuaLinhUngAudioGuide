@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mã truy cập | Quản trị Chùa Linh Ứng</title>
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+    <style>
+        .code-list { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+        .code { font: 700 20px/1 monospace; letter-spacing: 3px; padding: 10px 14px; border: 2px dashed var(--color-primary); border-radius: var(--radius); color: var(--color-primary); }
+    </style>
+</head>
+<body>
+    <div class="admin-shell">
+        <aside id="sidebar" class="sidebar"></aside>
+        <div class="admin-main">
+            <header id="topbar" class="topbar"></header>
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h1 id="pageHeading">Mã truy cập</h1>
+                        <p class="page-subtitle" id="pageSubtitle">Bán vé tiền mặt tại quầy và theo dõi các phiên truy cập của du khách.</p>
+                    </div>
+                    <div class="page-actions"></div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-header"><div class="card-title">Bán vé tiền mặt</div></div>
+                    <div class="card-body">
+                        <form id="cashForm" class="flex flex-wrap" style="gap:12px;align-items:flex-end">
+                            <div class="form-group" style="margin:0"><label class="form-label" for="quantity">Số lượng</label>
+                                <input class="input" type="number" min="1" max="50" value="1" id="quantity" name="quantity" style="width:110px"></div>
+                            <div class="form-group" style="margin:0;flex:1;min-width:220px"><label class="form-label" for="note">Ghi chú</label>
+                                <input class="input" id="note" name="note" maxlength="200" placeholder="VD: Đoàn khách Hàn Quốc"></div>
+                            <button type="submit" class="btn btn-primary" id="btnCreate">Tạo mã</button>
+                        </form>
+                        <div class="code-list" id="newCodes"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="toolbar">
+                        <div class="card-title" style="margin-right:auto">Lịch sử phiên truy cập</div>
+                        <select class="select" id="statusFilter">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Pending">Chờ thanh toán</option>
+                            <option value="Paid">Đã thanh toán</option>
+                            <option value="Active">Đang dùng</option>
+                            <option value="Expired">Hết hạn</option>
+                            <option value="Cancelled">Đã hủy</option>
+                        </select>
+                    </div>
+                    <div id="tableContainer"></div>
+                    <div class="pagination" id="pager"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="/admin/js/access/access-codes.js"></script>
+</body>
+</html>

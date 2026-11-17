@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điểm tham quan | Quản trị Chùa Linh Ứng</title>
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-shell">
+        <aside id="sidebar" class="sidebar"></aside>
+        <div class="admin-main">
+            <header id="topbar" class="topbar"></header>
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h1 id="pageHeading">Điểm tham quan</h1>
+                        <p class="page-subtitle" id="pageSubtitle">Nội dung gốc tiếng Việt; hệ thống tự dịch sang các ngôn ngữ và tạo audio.</p>
+                    </div>
+                    <div class="page-actions"><a class="btn btn-primary" href="/admin/pois/poi-form.html" data-role="admin">+ Thêm điểm</a></div>
+                </div>
+                <div class="card">
+                    <div class="toolbar">
+                        <input type="search" class="input search-input" id="searchInput" placeholder="Tìm theo tên hoặc mã...">
+                        <select class="select" id="activeFilter">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="true">Đang hiển thị</option>
+                            <option value="false">Đang ẩn</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary" id="btnReload">Tải lại</button>
+                    </div>
+                    <div id="tableContainer"></div>
+                    <div id="paginationContainer"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="/admin/js/pois/pois.js"></script>
+</body>
+</html>

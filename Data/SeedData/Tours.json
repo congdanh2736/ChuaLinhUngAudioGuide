@@ -1,0 +1,28 @@
+[
+  {
+    "code": "TOUR_CO_BAN",
+    "name": "Lộ trình cơ bản 30 phút",
+    "description": "Tham quan các điểm chính của chùa dành cho khách có ít thời gian.",
+    "estimatedMinutes": 30,
+    "poiCodes": [
+      "CONG_TAM_QUAN",
+      "VUON_LA_HAN",
+      "CHANH_DIEN",
+      "TUONG_QUAN_AM"
+    ]
+  },
+  {
+    "code": "TOUR_DAY_DU",
+    "name": "Lộ trình đầy đủ 60 phút",
+    "description": "Khám phá toàn bộ khuôn viên chùa và ngắm cảnh vịnh Đà Nẵng.",
+    "estimatedMinutes": 60,
+    "poiCodes": [
+      "CONG_TAM_QUAN",
+      "VUON_LA_HAN",
+      "CHANH_DIEN",
+      "VUON_BONSAI",
+      "TUONG_QUAN_AM",
+      "DIEM_NGAM_VINH"
+    ]
+  }
+]

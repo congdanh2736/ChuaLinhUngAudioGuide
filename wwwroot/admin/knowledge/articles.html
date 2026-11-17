@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiến thức chatbot | Quản trị Chùa Linh Ứng</title>
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-shell">
+        <aside id="sidebar" class="sidebar"></aside>
+        <div class="admin-main">
+            <header id="topbar" class="topbar"></header>
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h1 id="pageHeading">Kiến thức chatbot</h1>
+                        <p class="page-subtitle" id="pageSubtitle">Chatbot tìm câu trả lời trong nội dung các điểm và các bài viết dưới đây (viết bằng tiếng Việt).</p>
+                    </div>
+                    <div class="page-actions"><button type="button" class="btn btn-primary" id="btnAdd" data-role="admin">+ Thêm bài viết</button></div>
+                </div>
+                <div class="card">
+                    <div class="toolbar">
+                        <input type="search" class="input search-input" id="searchInput" placeholder="Tìm theo tiêu đề, nội dung...">
+                        <button type="button" class="btn btn-secondary" id="btnReload">Tải lại</button>
+                    </div>
+                    <div id="tableContainer"></div>
+                    <div id="paginationContainer"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module" src="/admin/js/knowledge/articles.js"></script>
+</body>
+</html>
