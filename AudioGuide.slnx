@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AudioGuide.Api/AudioGuide.Api.csproj" />
+  <Project Path="AudioGuide.Tests/AudioGuide.Tests.csproj" />
+</Solution>
