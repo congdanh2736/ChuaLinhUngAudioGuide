@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     ACCESS_CODE_TTL_HOURS: int = 24  # mã chưa dùng sẽ hết hạn sau ngần này giờ
     PAYMENT_PROVIDER: str = "mock"  # hiện chỉ có cổng giả lập (thay cho Payoo)
     PAYMENT_WEBHOOK_SECRET: str = "mock-webhook-secret"
+    # Mã giảm giá nhập ở trang thanh toán: {MÃ: % giảm}. Đổi qua .env dạng JSON, vd DISCOUNT_CODES={"HE2026":15}
+    DISCOUNT_CODES: dict[str, int] = {"10%": 10, "20%": 20, "50%": 50}
 
     # --- Dịch máy, TTS, LLM ---
     TRANSLATOR_PROVIDER: str = "google"  # google (Google -> Google API -> MyMemory) | mymemory | none
