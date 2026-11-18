@@ -5,15 +5,13 @@
 
 /*
  * Địa chỉ backend.
- * - Mở frontend từ chính backend (localhost, IP trong mạng LAN, *.runasp.net) -> "" = cùng địa chỉ, gọi /api như cũ.
- * - Mở frontend từ nơi khác (Vercel...) -> gọi sang backend trên MonsterASP (backend đã bật CORS cho domain đó).
+ * Frontend luôn gọi cùng địa chỉ với trang đang mở (/api, /media, /mock-gateway):
+ * - Chạy chung với backend (localhost, *.runasp.net): backend tự trả lời.
+ * - Chạy trên Vercel: vercel.json chuyển tiếp (proxy) các đường dẫn này sang backend trên MonsterASP,
+ *   nên không bị lỗi CORS và không bị chặn vì backend chỉ có HTTP.
+ * Muốn gọi thẳng backend ở domain khác thì đặt BACKEND_URL = "https://..." (backend phải có HTTPS + CORS).
  */
-const PROD_BACKEND_URL = "https://audioguide.runasp.net";
-const host = window.location.hostname;
-const servedByBackend = ["localhost", "127.0.0.1"].includes(host)
-    || /^(10|192\.168|172\.(1[6-9]|2\d|3[01]))\./.test(host)
-    || host.endsWith(".runasp.net");
-export const BACKEND_URL = servedByBackend ? "" : PROD_BACKEND_URL;
+export const BACKEND_URL = "";
 
 // Mọi API của backend .NET đều bắt đầu bằng /api
 export const API_BASE = BACKEND_URL + "/api";
