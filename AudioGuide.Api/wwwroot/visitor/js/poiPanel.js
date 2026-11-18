@@ -5,6 +5,7 @@
  */
 import { visitorApi } from "../../assets/js/api/visitorApi.js";
 import { escapeHtml } from "../../assets/js/core/utils.js";
+import { backendUrl } from "../../assets/js/core/config.js";
 import { state, $, showMsg, langName } from "./state.js";
 import { t } from "./i18n.js";
 import { onUnauthorized } from "./main.js";
@@ -88,7 +89,7 @@ export function openPoi(poi, opts = {}) {
     actions.appendChild(speakBtn);
 
     if (poi.audioUrl) {
-        audio.src = poi.audioUrl;
+        audio.src = backendUrl(poi.audioUrl);   // audio nằm trên backend (/media/...)
         audio.classList.remove("hidden");
     } else {
         audio.removeAttribute("src");

@@ -4,7 +4,7 @@
  *        -> tới gần điểm nào thì tự phát thuyết minh (geofence, xem mapView.js).
  */
 import { visitorApi } from "../../assets/js/api/visitorApi.js";
-import { STORAGE_KEYS } from "../../assets/js/core/config.js";
+import { STORAGE_KEYS, backendUrl } from "../../assets/js/core/config.js";
 import { escapeHtml, storage } from "../../assets/js/core/utils.js";
 import { state, saveToken, $, showMsg } from "./state.js";
 import { loadStrings, t, applyI18n } from "./i18n.js";
@@ -195,7 +195,7 @@ async function init() {
     $("btnPayOnline").addEventListener("click", async () => {
         try {
             const data = await visitorApi.startOnlinePayment();
-            location.href = data.paymentUrl;
+            location.href = backendUrl(data.paymentUrl);   // trang cổng giả lập chạy trên backend
         } catch (err) {
             $("gateMsg").textContent = err.message;
         }

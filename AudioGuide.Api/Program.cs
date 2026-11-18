@@ -56,6 +56,32 @@ builder.Services.Configure<SiteSettings>(builder.Configuration.GetSection("Site"
 builder.Services.Configure<SeedSettings>(builder.Configuration.GetSection("Seed"));
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? new JwtSettings();
 
+//--------------------------------------------------------------[CORS: CHO FRONTEND DEPLOY RIÊNG (VERCEL) GỌI API]--------------------------------//
+/*
+ * Frontend chạy chung địa chỉ với backend thì không cần CORS.
+ * Frontend deploy ở domain khác (Vercel) thì phải khai báo domain đó trong Cors:AllowedOrigins.
+ * API dùng token ở header Authorization (không dùng cookie) nên không cần AllowCredentials.
+ */
+var corsOrigins = builder.Configuration.GetSection("Cors").Get<CorsSettings>()?.AllowedOrigins ?? Array.Empty<string>();
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
+    .SetIsOriginAllowed(origin => corsOrigins.Any(allowed => OriginMatches(origin, allowed)))
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .WithExposedHeaders("ETag")));   // app du khách đọc header ETag của /api/content/bundle
+
+static bool OriginMatches(string origin, string allowed)
+{
+    allowed = allowed.Trim().TrimEnd('/');
+    if (string.IsNullOrEmpty(allowed)) return false;
+    if (!allowed.Contains("://*.")) return string.Equals(origin, allowed, StringComparison.OrdinalIgnoreCase);
+    // "https://*.vercel.app" -> scheme phải khớp, host kết thúc bằng ".vercel.app"
+    var scheme = allowed[..allowed.IndexOf("://", StringComparison.Ordinal)];
+    var suffix = allowed[(allowed.IndexOf("://*", StringComparison.Ordinal) + 4)..];
+    return Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+        && uri.Scheme.Equals(scheme, StringComparison.OrdinalIgnoreCase)
+        && uri.Host.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
+}
+
 //--------------------------------------------------------------[DATABASE: SQL SERVER + EF CORE]-------------------------------------------------//
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -281,6 +307,7 @@ else
     app.Logger.LogWarning("Không tìm thấy thư mục wwwroot tại {Path}. Giao diện web sẽ không mở được.", webRootPath);
 }
 
+app.UseCors();           // phải đứng trước Authentication để request preflight (OPTIONS) không bị chặn
 app.UseAuthentication(); // đọc token
 app.UseAuthorization();  // kiểm tra vai trò
 app.MapControllers();
