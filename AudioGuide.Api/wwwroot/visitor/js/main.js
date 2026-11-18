@@ -34,13 +34,7 @@ export function onUnauthorized() {
 async function loadAccessInfo() {
     try {
         const info = await visitorApi.accessInfo();
-        // Hiện giá theo mức giảm đang chọn (chỉ để xem; số tiền thật do backend tính)
-        const showPrice = () => {
-            const percent = Number($("discountSelect").value);
-            $("price").textContent = (info.priceVnd * (100 - percent) / 100).toLocaleString("vi-VN") + " đ";
-        };
-        $("discountSelect").onchange = showPrice;
-        showPrice();
+        $("price").textContent = info.priceVnd.toLocaleString("vi-VN") + " đ";
         $("hours").textContent = info.accessHours;
         return info;
     } catch {
@@ -200,7 +194,7 @@ async function init() {
     // POST /api/access/online -> tạo giao dịch -> chuyển sang trang cổng thanh toán (giả lập)
     $("btnPayOnline").addEventListener("click", async () => {
         try {
-            const data = await visitorApi.startOnlinePayment(Number($("discountSelect").value));
+            const data = await visitorApi.startOnlinePayment();
             location.href = backendUrl(data.paymentUrl);   // trang cổng giả lập chạy trên backend
         } catch (err) {
             $("gateMsg").textContent = err.message;

@@ -101,8 +101,7 @@ namespace AudioGuide.Api.Interface.Services
     public interface IAccessService
     {
         AccessInfoDto GetInfo();
-        Task<AccessSession> CreateSessionAsync(AccessMethod method, AccessStatus status, string? createdById = null,
-            string? note = null, int discountPercent = 0);
+        Task<AccessSession> CreateSessionAsync(AccessMethod method, AccessStatus status, string? createdById = null, string? note = null);
         Task<List<AccessSessionDto>> CreateCashCodesAsync(string staffId, int quantity, string? note);
         Task<AccessTokenDto> RedeemAsync(string code);
         Task<AccessSession> VerifySessionAsync(int sessionId);
@@ -112,7 +111,7 @@ namespace AudioGuide.Api.Interface.Services
 
     public interface IPaymentService
     {
-        Task<OnlinePaymentDto> StartOnlinePaymentAsync(int discountPercent = 0);
+        Task<OnlinePaymentDto> StartOnlinePaymentAsync();
         Task<(Payment Payment, AccessSession Session)> GetPaymentAsync(int paymentId);
         Task<Payment> HandleWebhookAsync(WebhookRequestDto dto, string signature);
         Task<Payment> CompleteMockPaymentAsync(int paymentId, bool success);

@@ -1,4 +1,3 @@
-using AudioGuide.Api.Common;
 using AudioGuide.Api.DTOs.Access;
 using FluentValidation;
 
@@ -10,15 +9,6 @@ namespace AudioGuide.Api.Validators.Access
         {
             RuleFor(x => x.Code).NotEmpty().WithMessage("Vui lòng nhập mã truy cập")
                 .Length(4, 12).WithMessage("Mã truy cập từ 4 đến 12 ký tự");
-        }
-    }
-
-    public class StartOnlineRequestValidator : AbstractValidator<StartOnlineRequestDto>
-    {
-        public StartOnlineRequestValidator()
-        {
-            RuleFor(x => x.DiscountPercent).Must(p => BusinessConstants.DiscountPercents.Contains(p))
-                .WithMessage("Mức giảm giá không hợp lệ");
         }
     }
 
