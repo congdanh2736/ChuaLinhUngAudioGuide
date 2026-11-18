@@ -41,7 +41,7 @@ namespace AudioGuide.Api.Common
 
     public class TtsSettings
     {
-        public string Provider { get; set; } = "edge";      // edge | none
+        public string Provider { get; set; } = "edge";      // edge (lỗi thì tự chuyển Google) | google | none
     }
 
     public class LlmSettings
