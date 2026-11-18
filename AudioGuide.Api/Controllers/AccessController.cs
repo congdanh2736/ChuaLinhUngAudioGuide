@@ -31,8 +31,8 @@ namespace AudioGuide.Api.Controllers
 
         // Bắt đầu thanh toán online -> nhận URL cổng thanh toán
         [HttpPost("online")]
-        public async Task<ActionResult<OnlinePaymentDto>> StartOnline()
-            => StatusCode(StatusCodes.Status201Created, await _paymentService.StartOnlinePaymentAsync());
+        public async Task<ActionResult<OnlinePaymentDto>> StartOnline([FromBody] StartOnlineRequestDto? dto)
+            => StatusCode(StatusCodes.Status201Created, await _paymentService.StartOnlinePaymentAsync(dto?.DiscountPercent ?? 0));
 
         // Đổi mã truy cập (online hoặc tiền mặt) lấy token
         [HttpPost("token")]
