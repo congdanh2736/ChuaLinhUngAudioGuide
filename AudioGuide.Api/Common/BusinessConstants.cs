@@ -28,6 +28,9 @@ namespace AudioGuide.Api.Common
         public const int AccessCodeLength = 6;
         public const int MaxCashCodesPerRequest = 50;
 
+        // Các mức giảm giá (%) du khách được chọn khi mua vé online. 0 = không giảm
+        public static readonly int[] DiscountPercents = { 0, 5, 10 };
+
         public const int DefaultRouteStops = 6;           // gợi ý lộ trình: số điểm mặc định
         public const double WalkingSpeedMPerMin = 60;     // đi bộ tham quan chậm ~3.6 km/h
         public const int ListenWordsPerMinute = 150;      // tốc độ đọc thuyết minh

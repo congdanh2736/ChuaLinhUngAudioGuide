@@ -23,6 +23,11 @@
                     <span data-i18n="priceLabel">Giá vé</span><span class="v-price" id="price">50.000 đ</span>
                 </div>
                 <div class="text-muted"><span data-i18n="durationLabel">Thời gian dùng</span>: <b id="hours">24</b> <span data-i18n="hours">giờ</span></div>
+                <select class="select mt-4" id="discountSelect" aria-label="Discount">
+                    <option value="0">Không giảm giá</option>
+                    <option value="5">Giảm 5%</option>
+                    <option value="10">Giảm 10%</option>
+                </select>
                 <button type="button" class="btn btn-primary btn-block mt-4" id="btnPayOnline" data-i18n="payOnline">Thanh toán online</button>
             </div>
             <div class="card card-body">

@@ -20,6 +20,12 @@ namespace AudioGuide.Api.DTOs.Access
         public DateTime ExpiresAt { get; set; }
     }
 
+    // Du khách bấm "Thanh toán online" kèm mức giảm giá đã chọn (0, 5, 10)
+    public class StartOnlineRequestDto
+    {
+        public int DiscountPercent { get; set; }
+    }
+
     public class OnlinePaymentDto
     {
         public int PaymentId { get; set; }

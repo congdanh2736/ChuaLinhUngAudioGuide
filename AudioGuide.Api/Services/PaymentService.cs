@@ -28,9 +28,9 @@ namespace AudioGuide.Api.Services
         }
 
         // B1: tạo phiên chờ thanh toán + bản ghi Payment + URL cổng thanh toán
-        public async Task<OnlinePaymentDto> StartOnlinePaymentAsync()
+        public async Task<OnlinePaymentDto> StartOnlinePaymentAsync(int discountPercent = 0)
         {
-            var session = await _accessService.CreateSessionAsync(AccessMethod.Online, AccessStatus.Pending);
+            var session = await _accessService.CreateSessionAsync(AccessMethod.Online, AccessStatus.Pending, discountPercent: discountPercent);
             var payment = new Payment
             {
                 SessionId = session.Id,
