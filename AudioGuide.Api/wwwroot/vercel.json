@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "http://audioguide.runasp.net/api/:path*" },
+    { "source": "/media/:path*", "destination": "http://audioguide.runasp.net/media/:path*" },
+    { "source": "/mock-gateway/:path*", "destination": "http://audioguide.runasp.net/mock-gateway/:path*" },
+    { "source": "/health", "destination": "http://audioguide.runasp.net/health" }
+  ]
+}
