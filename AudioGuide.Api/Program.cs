@@ -223,10 +223,25 @@ builder.Services.AddSingleton<ITranslator>(sp =>
         _ => new DisabledTranslator()
     };
 });
+builder.Services.AddHttpClient("tts", c => c.Timeout = TimeSpan.FromSeconds(20));
 builder.Services.AddSingleton<ITtsProvider>(sp =>
-    sp.GetRequiredService<IOptions<TtsSettings>>().Value.Provider.Equals("edge", StringComparison.OrdinalIgnoreCase)
-        ? new EdgeTtsClient(sp.GetRequiredService<ILogger<EdgeTtsClient>>())
-        : new DisabledTts());
+{
+    // edge = Edge-TTS, lỗi thì tự chuyển sang Google | google = chỉ dùng Google | none = tắt (app đọc bằng giọng trình duyệt)
+    var provider = sp.GetRequiredService<IOptions<TtsSettings>>().Value.Provider.ToLowerInvariant();
+    var google = new GoogleTranslateTts(sp.GetRequiredService<IHttpClientFactory>().CreateClient("tts"),
+        sp.GetRequiredService<ILogger<GoogleTranslateTts>>());
+    var fallbackLogger = sp.GetRequiredService<ILogger<FallbackTts>>();
+    return provider switch
+    {
+        "edge" or "auto" => new FallbackTts(new (string, ITtsProvider)[]
+        {
+            ("edge", new EdgeTtsClient(sp.GetRequiredService<ILogger<EdgeTtsClient>>())),
+            ("google", google)
+        }, fallbackLogger),
+        "google" => google,
+        _ => new DisabledTts()
+    };
+});
 builder.Services.AddSingleton<ILlmClient>(sp => new OpenAiCompatibleLlmClient(
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("llm"),
     sp.GetRequiredService<IOptions<LlmSettings>>(),
