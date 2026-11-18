@@ -12,7 +12,7 @@ export const visitorApi = {
     uiStrings: lang => visitorHttp.get(`/ui-strings/${lang}`),
 
     accessInfo: () => visitorHttp.get("/access/info"),
-    startOnlinePayment: discountPercent => visitorHttp.post("/access/online", { discountPercent }),
+    startOnlinePayment: () => visitorHttp.post("/access/online"),
     redeem: code => visitorHttp.post("/access/token", { code }),
 
     // Gửi kèm ETag cũ: dữ liệu không đổi thì server trả 304 (raw = true để đọc header)

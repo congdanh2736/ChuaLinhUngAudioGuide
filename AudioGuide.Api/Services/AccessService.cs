@@ -55,20 +55,15 @@ namespace AudioGuide.Api.Services
             throw new BusinessException("Không tạo được mã truy cập, vui lòng thử lại", "CODE_GENERATION_FAILED");
         }
 
-        public async Task<AccessSession> CreateSessionAsync(AccessMethod method, AccessStatus status, string? createdById = null,
-            string? note = null, int discountPercent = 0)
+        public async Task<AccessSession> CreateSessionAsync(AccessMethod method, AccessStatus status, string? createdById = null, string? note = null)
         {
-            // Kiểm tra lại ở tầng nghiệp vụ (không tin dữ liệu từ frontend), rồi tính số tiền sau giảm
-            if (!BusinessConstants.DiscountPercents.Contains(discountPercent))
-                throw new BusinessException("Mức giảm giá không hợp lệ", "INVALID_DISCOUNT");
-            var amount = _settings.PriceVnd * (100 - discountPercent) / 100;   // 50.000 giảm 10% = 45.000
             var now = Now;
             var session = new AccessSession
             {
                 Code = await UniqueCodeAsync(),
                 Method = method,
                 Status = status,
-                Amount = amount,
+                Amount = _settings.PriceVnd,
                 Currency = "VND",
                 CreatedById = createdById,
                 Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
