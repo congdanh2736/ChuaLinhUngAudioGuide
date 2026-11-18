@@ -6,7 +6,7 @@
  * Mỗi "khu vực" dùng 1 token khác nhau: trang quản trị dùng token admin,
  * app du khách dùng token du khách -> truyền tokenKind khi tạo client.
  */
-import { API_BASE, STORAGE_KEYS } from "./config.js";
+import { API_BASE, STORAGE_KEYS, backendUrl } from "./config.js";
 
 export class ApiError extends Error {
     constructor(message, status = 0, code = null, errors = null, data = null) {
@@ -20,7 +20,7 @@ export class ApiError extends Error {
 }
 
 function buildUrl(path, params) {
-    let url = path.startsWith("http") || path.startsWith("/media") ? path : API_BASE + path;
+    let url = path.startsWith("http") ? path : path.startsWith("/media") ? backendUrl(path) : API_BASE + path;
     if (params) {
         const search = new URLSearchParams();
         for (const [key, value] of Object.entries(params)) {

@@ -63,6 +63,14 @@ namespace AudioGuide.Api.Common
     public class SiteSettings
     {
         public int UtcOffsetHours { get; set; } = 7;        // múi giờ của chùa (Việt Nam UTC+7)
+        // Địa chỉ frontend khi deploy riêng (vd https://audioguide.vercel.app). Trống = frontend chạy chung với backend
+        public string FrontendUrl { get; set; } = string.Empty;
+    }
+
+    public class CorsSettings
+    {
+        // Các domain frontend được gọi API. "https://*.vercel.app" = cho phép mọi subdomain (bản preview của Vercel)
+        public string[] AllowedOrigins { get; set; } = Array.Empty<string>();
     }
 
     public class SeedSettings

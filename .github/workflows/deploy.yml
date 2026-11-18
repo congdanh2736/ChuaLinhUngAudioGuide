@@ -1,0 +1,126 @@
+# CI/CD: build + test mỗi lần push/PR, deploy lên MonsterASP.NET khi push vào nhánh chính
+name: CI/CD - Build, Test, Deploy
+
+on:
+  push:
+    branches: [ dotnet, main ]
+  pull_request:
+    branches: [ dotnet, main ]
+  workflow_dispatch:        # cho phép bấm "Run workflow" bằng tay trong tab Actions
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  API_PROJECT: AudioGuide.Api/AudioGuide.Api.csproj
+
+jobs:
+  # ---------------------------------------------------------------- CI ----
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore AudioGuide.slnx
+
+      - name: Build
+        run: dotnet build AudioGuide.slnx -c Release --no-restore
+
+      - name: Test (xUnit + Moq, không cần SQL Server)
+        run: dotnet test AudioGuide.slnx -c Release --no-build --verbosity normal
+
+      - name: Publish
+        run: dotnet publish ${{ env.API_PROJECT }} -c Release -o publish
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: publish
+
+  # ---------------------------------------------------------------- CD ----
+  deploy:
+    name: Deploy to MonsterASP.NET
+    needs: build-test
+    # PR chỉ build + test, không deploy
+    if: github.event_name != 'pull_request'
+    runs-on: windows-latest
+    environment:
+      name: production
+      url: http://${{ vars.SITE_DOMAIN || 'audioguide.runasp.net' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: app
+          path: publish
+
+      # Cấu hình production tạo từ GitHub Secrets -> không có mật khẩu nào nằm trong repo
+      - name: Create appsettings.Production.json from secrets
+        shell: pwsh
+        env:
+          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL }}   # vd https://audioguide.vercel.app (biến thường, không phải secret)
+        run: |
+          if (-not $env:DB_CONNECTION -or -not $env:JWT_KEY) { throw "Thiếu secret DB_CONNECTION hoặc JWT_KEY" }
+          $cfg = [ordered]@{
+            ConnectionStrings = @{ DefaultConnection = $env:DB_CONNECTION }
+            Jwt               = @{ Key = $env:JWT_KEY }
+          }
+          if ($env:LLM_API_KEY) { $cfg.Llm = @{ ApiKey = $env:LLM_API_KEY } }
+          if ($env:FRONTEND_URL) {
+            $front = $env:FRONTEND_URL.TrimEnd('/')
+            $cfg.Site = @{ FrontendUrl = $front }
+            # domain chính + các bản preview của Vercel
+            $cfg.Cors = @{ AllowedOrigins = @($front, "https://*.vercel.app") }
+          }
+          $cfg | ConvertTo-Json -Depth 5 | Set-Content publish/appsettings.Production.json -Encoding utf8
+
+      - name: Locate / install Web Deploy
+        shell: pwsh
+        run: |
+          $paths = @(
+            "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe",
+            "C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          )
+          $exe = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $exe) {
+            choco install webdeploy -y --no-progress
+            $exe = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+          if (-not $exe) { throw "Không tìm thấy msdeploy.exe" }
+          "MSDEPLOY=$exe" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      # -enableRule:AppOffline : tạm dừng app khi chép file (tránh lỗi file .dll đang bị khóa)
+      # -verb:sync             : server giống hệt thư mục publish (xóa luôn trang mặc định của MonsterASP)
+      - name: Deploy with WebDeploy
+        shell: cmd
+        env:
+          SITE: ${{ secrets.MONSTERASP_SITE }}
+          WD_PASSWORD: ${{ secrets.MONSTERASP_WEBDEPLOY_PASSWORD }}
+        run: >-
+          "%MSDEPLOY%" -verb:sync
+          -source:contentPath="%CD%\publish"
+          -dest:contentPath="%SITE%",computerName="https://%SITE%.siteasp.net:8172/msdeploy.axd?site=%SITE%",userName="%SITE%",password="%WD_PASSWORD%",authtype="Basic",includeAcls="False"
+          -allowUntrusted
+          -enableRule:AppOffline
+          -skip:Directory="\\logs$"
+          -disableLink:AppPoolExtension -disableLink:ContentExtension -disableLink:CertificateExtension
+
+      # Gọi /health sau khi deploy, app lần đầu khởi động hơi lâu nên thử lại vài lần
+      - name: Smoke test /health
+        shell: pwsh
+        run: |
+          $url = "http://${{ vars.SITE_DOMAIN || 'audioguide.runasp.net' }}/health"
+          for ($i = 1; $i -le 10; $i++) {
+            try {
+              $r = Invoke-WebRequest $url -UseBasicParsing -TimeoutSec 30
+              if ($r.StatusCode -eq 200) { Write-Host "OK: $url"; exit 0 }
+            } catch { Write-Host "Lần $i chưa được: $($_.Exception.Message)" }
+            Start-Sleep -Seconds 15
+          }
+          throw "App không phản hồi tại $url"

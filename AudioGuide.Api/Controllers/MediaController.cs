@@ -1,6 +1,8 @@
 using System.Net;
 using AudioGuide.Api.Interface.Services;
+using AudioGuide.Api.Common;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
 namespace AudioGuide.Api.Controllers
@@ -39,7 +41,13 @@ namespace AudioGuide.Api.Controllers
     public class MockGatewayController : ControllerBase
     {
         private readonly IPaymentService _service;
-        public MockGatewayController(IPaymentService service) => _service = service;
+        private readonly string _frontendUrl;   // frontend deploy riêng (Vercel) -> chuyển khách về đó, trống = về chính backend
+
+        public MockGatewayController(IPaymentService service, IOptions<SiteSettings> site)
+        {
+            _service = service;
+            _frontendUrl = site.Value.FrontendUrl.Trim().TrimEnd('/');
+        }
 
         private const string Page = """
 <!doctype html><html lang="vi"><head><meta charset="utf-8">
@@ -68,7 +76,7 @@ namespace AudioGuide.Api.Controllers
                 var (payment, _) = await _service.GetPaymentAsync(paymentId);
                 var amount = payment.Amount.ToString("N0", System.Globalization.CultureInfo.InvariantCulture).Replace(",", ".") + " đ";
                 var body = payment.Status != Models.PaymentStatus.Pending
-                    ? $"<p>Giao dịch đã xử lý: <b>{payment.Status}</b></p><a class=\"btn btn-secondary\" href=\"/\">Về ứng dụng</a>"
+                    ? $"<p>Giao dịch đã xử lý: <b>{payment.Status}</b></p><a class=\"btn btn-secondary\" href=\"{_frontendUrl}/\">Về ứng dụng</a>"
                     : $"<form method=\"post\" action=\"/mock-gateway/{payment.Id}/complete\">"
                       + "<button class=\"btn btn-primary\" name=\"result\" value=\"success\">Thanh toán thành công</button>"
                       + "<button class=\"btn btn-secondary\" name=\"result\" value=\"failed\">Hủy / thất bại</button></form>";
@@ -87,8 +95,8 @@ namespace AudioGuide.Api.Controllers
             var payment = await _service.CompleteMockPaymentAsync(paymentId, result == "success");
             var (_, session) = await _service.GetPaymentAsync(payment.Id);
             return payment.Status == Models.PaymentStatus.Success
-                ? Redirect($"/?payment=success&code={session.Code}")
-                : Redirect("/?payment=failed");
+                ? Redirect($"{_frontendUrl}/?payment=success&code={session.Code}")
+                : Redirect($"{_frontendUrl}/?payment=failed");
         }
     }
 

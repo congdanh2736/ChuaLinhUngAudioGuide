@@ -3,8 +3,23 @@
  * Muốn đổi địa chỉ API hay tên khóa lưu trình duyệt thì sửa ở đây.
  */
 
-// Mọi API của backend .NET đều bắt đầu bằng /api (frontend chạy chung địa chỉ với API nên không cần CORS)
-export const API_BASE = "/api";
+/*
+ * Địa chỉ backend.
+ * - Mở frontend từ chính backend (localhost, IP trong mạng LAN, *.runasp.net) -> "" = cùng địa chỉ, gọi /api như cũ.
+ * - Mở frontend từ nơi khác (Vercel...) -> gọi sang backend trên MonsterASP (backend đã bật CORS cho domain đó).
+ */
+const PROD_BACKEND_URL = "https://audioguide.runasp.net";
+const host = window.location.hostname;
+const servedByBackend = ["localhost", "127.0.0.1"].includes(host)
+    || /^(10|192\.168|172\.(1[6-9]|2\d|3[01]))\./.test(host)
+    || host.endsWith(".runasp.net");
+export const BACKEND_URL = servedByBackend ? "" : PROD_BACKEND_URL;
+
+// Mọi API của backend .NET đều bắt đầu bằng /api
+export const API_BASE = BACKEND_URL + "/api";
+
+// Đường dẫn tương đối do backend trả về (/media/..., /mock-gateway/...) -> URL đầy đủ tới backend
+export const backendUrl = path => (!path || /^https?:\/\//.test(path) ? path : BACKEND_URL + path);
 
 // Tên khóa lưu trong localStorage của trình duyệt
 export const STORAGE_KEYS = Object.freeze({
