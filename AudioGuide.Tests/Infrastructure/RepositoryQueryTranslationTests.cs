@@ -90,6 +90,7 @@ namespace AudioGuide.Tests.Infrastructure
 
             var queries = new List<Func<Task>>
             {
+                () => sessions.CountCreatedByDayAsync(now.AddDays(-30), now, 7),
                 () => languages.GetByCodeAsync("vi"), () => languages.ListAsync(true), () => languages.CountActiveAsync(),
                 () => pois.GetByCodeAsync("A"), () => pois.GetWithDetailsAsync(1), () => pois.ListActiveAsync(), () => pois.ListAllAsync(),
                 () => pois.SearchAsync("cổng", true, 0, 20), () => pois.GetMissingIdsAsync(new[] { 1, 2 }), () => pois.CountActiveAsync(),
