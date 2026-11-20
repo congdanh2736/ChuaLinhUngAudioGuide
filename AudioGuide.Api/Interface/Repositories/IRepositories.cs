@@ -58,6 +58,7 @@ namespace AudioGuide.Api.Interface.Repositories
         Task<int> MarkExpiredAsync(DateTime now);
         Task<Dictionary<string, int>> CountByStatusAsync();
         Task<long> TotalRevenueAsync();
+        Task<List<(DateTime Day, int Total, int Cash, int Online, int Activated)>> CountCreatedByDayAsync(DateTime fromUtc, DateTime toUtc, int utcOffsetHours);
     }
 
     public interface IPaymentRepository : IRepository<Payment>

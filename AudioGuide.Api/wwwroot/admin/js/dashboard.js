@@ -26,6 +26,41 @@ function statusRows(counts, badge) {
             <b style="margin-left:16px">${formatNumber(n)}</b></div>`).join("");
 }
 
+// "2026-11-20" -> "T6, 20/11/2026"
+function formatDay(isoDate) {
+    const [y, m, d] = isoDate.split("-").map(Number);
+    const weekday = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][new Date(y, m - 1, d).getDay()];
+    return `${weekday}, ${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`;
+}
+
+// Bảng số mã truy cập được tạo theo ngày: GET /api/stats/codes-by-day
+async function loadCodesByDay() {
+    const from = $("codesFrom").value || undefined;
+    const to = $("codesTo").value || undefined;
+    const rows = await statsApi.codesByDay(from, to);
+    // Lần đầu (chưa chọn ngày) -> điền khoảng mặc định server trả về vào 2 ô ngày
+    if (rows.length) {
+        $("codesTo").value = rows[0].date;
+        $("codesFrom").value = rows[rows.length - 1].date;
+    }
+    const sum = key => rows.reduce((total, r) => total + r[key], 0);
+    const total = { isTotal: true, total: sum("total"), cash: sum("cash"), online: sum("online"), activated: sum("activated") };
+    $("codesByDaySummary").textContent = `${formatNumber(total.total)} mã trong ${rows.length} ngày`;
+
+    const num = key => r => r.isTotal ? `<b>${formatNumber(r[key])}</b>` : (r[key] ? formatNumber(r[key]) : '<span class="text-muted">0</span>');
+    renderTable($("codesByDay"), {
+        columns: [
+            { key: "date", title: "Ngày", render: r => r.isTotal ? "<b>Tổng cộng</b>" : formatDay(r.date) },
+            { key: "total", title: "Tổng số mã", align: "right", render: num("total") },
+            { key: "cash", title: "Tiền mặt (quầy)", align: "right", render: num("cash") },
+            { key: "online", title: "Online", align: "right", render: num("online") },
+            { key: "activated", title: "Đã kích hoạt", align: "right", render: num("activated") }
+        ],
+        rows: [total, ...rows],
+        emptyText: "Chưa có dữ liệu."
+    });
+}
+
 async function load() {
     const [s, logs] = await Promise.all([statsApi.overview(), statsApi.chatLogs(10)]);
     $("statGrid").innerHTML = [
@@ -61,7 +96,14 @@ async function load() {
 }
 
 if (await initAdminLayout({ title: "Tổng quan" })) {
-    $("btnReload").addEventListener("click", () => load().catch(err => toast.error(err.message)));
+    $("btnReload").addEventListener("click", () => {
+        load().catch(err => toast.error(err.message));
+        loadCodesByDay().catch(err => toast.error(err.message));
+    });
+    $("codesByDayForm").addEventListener("submit", event => {
+        event.preventDefault();
+        loadCodesByDay().catch(err => toast.error(err.message));
+    });
     $("btnLocalizeAll")?.addEventListener("click", async () => {
         const ok = await confirmDialog({ title: "Dịch toàn bộ", message: "Xếp hàng dịch + tạo audio cho mọi điểm và lộ trình còn thiếu?\nQuá trình chạy nền, có thể mất vài phút.", confirmText: "Bắt đầu" });
         if (!ok) return;
@@ -73,4 +115,5 @@ if (await initAdminLayout({ title: "Tổng quan" })) {
         }
     });
     load().catch(err => toast.error(err.message));
+    loadCodesByDay().catch(err => toast.error(err.message));
 }

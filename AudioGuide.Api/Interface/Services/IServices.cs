@@ -136,6 +136,7 @@ namespace AudioGuide.Api.Interface.Services
         Task RecordEventAsync(EventRequestDto dto, int? sessionId);
         Task<List<ChatLogDto>> RecentChatsAsync(int limit);
         Task<StatsDto> OverviewAsync();
+        Task<List<CodesByDayDto>> CodesByDayAsync(DateOnly? from, DateOnly? to);
     }
 
     public interface IUiTextService

@@ -20,6 +20,11 @@ namespace AudioGuide.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<StatsDto>> Overview() => Ok(await _service.OverviewAsync());
 
+        // Số mã truy cập được tạo theo ngày: /api/stats/codes-by-day?from=2026-11-01&to=2026-11-20
+        [HttpGet("codes-by-day")]
+        public async Task<ActionResult<List<CodesByDayDto>>> CodesByDay([FromQuery] DateOnly? from, [FromQuery] DateOnly? to)
+            => Ok(await _service.CodesByDayAsync(from, to));
+
         // Các câu hỏi gần đây của du khách
         [HttpGet("chat-logs")]
         public async Task<ActionResult<List<ChatLogDto>>> ChatLogs([FromQuery] int limit = 20)

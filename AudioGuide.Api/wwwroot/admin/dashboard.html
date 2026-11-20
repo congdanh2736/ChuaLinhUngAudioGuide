@@ -12,6 +12,7 @@
         .status-row + .status-row { border-top: 1px solid var(--color-border); }
         .bar-track { height: 8px; border-radius: 999px; background: var(--color-secondary-soft); overflow: hidden; margin-top: var(--space-2); }
         .bar-fill { height: 100%; background: var(--color-primary); border-radius: 999px; }
+        .codes-by-day { max-height: 420px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -42,6 +43,18 @@
                         <div class="card-header"><div class="card-title">Phiên truy cập</div></div>
                         <div class="card-body" id="sessionStatus"></div>
                     </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header"><div class="card-title">Mã truy cập được tạo theo ngày</div><span class="text-muted text-sm" id="codesByDaySummary"></span></div>
+                    <form class="toolbar" id="codesByDayForm">
+                        <label class="text-sm" for="codesFrom">Từ ngày</label>
+                        <input class="input" type="date" id="codesFrom" style="width:auto">
+                        <label class="text-sm" for="codesTo">Đến ngày</label>
+                        <input class="input" type="date" id="codesTo" style="width:auto">
+                        <button type="submit" class="btn btn-secondary btn-sm">Xem</button>
+                    </form>
+                    <div id="codesByDay" class="codes-by-day"></div>
                 </div>
 
                 <div class="grid-2 mb-4">

@@ -46,5 +46,28 @@ namespace AudioGuide.Api.Repositories
             => await _set
                 .Where(s => s.Status == AccessStatus.Paid || s.Status == AccessStatus.Active || s.Status == AccessStatus.Expired)
                 .SumAsync(s => (long)s.Amount);
+
+        /*
+         * Đếm mã được tạo theo từng ngày trong khoảng [fromUtc, toUtc).
+         * - Chỉ tính mã hợp lệ đã thanh toán (PaidAt != null): bỏ các lượt mua online bỏ dở / thanh toán lỗi.
+         * - CreatedAt lưu giờ UTC -> cộng utcOffsetHours rồi lấy phần ngày để gom đúng theo ngày ở Việt Nam.
+         */
+        public async Task<List<(DateTime Day, int Total, int Cash, int Online, int Activated)>> CountCreatedByDayAsync(
+            DateTime fromUtc, DateTime toUtc, int utcOffsetHours)
+        {
+            var rows = await _set.AsNoTracking()
+                .Where(s => s.PaidAt != null && s.CreatedAt >= fromUtc && s.CreatedAt < toUtc)
+                .GroupBy(s => s.CreatedAt.AddHours(utcOffsetHours).Date)
+                .Select(g => new
+                {
+                    Day = g.Key,
+                    Total = g.Count(),
+                    Cash = g.Count(s => s.Method == AccessMethod.Cash),
+                    Online = g.Count(s => s.Method == AccessMethod.Online),
+                    Activated = g.Count(s => s.ActivatedAt != null)
+                })
+                .ToListAsync();
+            return rows.Select(r => (r.Day, r.Total, r.Cash, r.Online, r.Activated)).ToList();
+        }
     }
 }

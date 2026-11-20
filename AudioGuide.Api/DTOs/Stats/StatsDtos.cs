@@ -18,6 +18,16 @@ namespace AudioGuide.Api.DTOs.Stats
         public string AiProvider { get; set; } = string.Empty;
     }
 
+    // Số mã truy cập được tạo trong 1 ngày (ngày theo giờ Việt Nam)
+    public class CodesByDayDto
+    {
+        public string Date { get; set; } = string.Empty;   // yyyy-MM-dd
+        public int Total { get; set; }
+        public int Cash { get; set; }                      // nhân viên bán tại quầy
+        public int Online { get; set; }                    // khách mua online (đã thanh toán)
+        public int Activated { get; set; }                 // trong số đó, đã được khách nhập vào app
+    }
+
     public class TopPoiDto
     {
         public int PoiId { get; set; }
