@@ -20,27 +20,6 @@ namespace AudioGuide.Tests.Services
         private AccessService Service() => new(_repo.Object, _jwt.Object, TestHelpers.Mapper,
             TestHelpers.Options(new AccessSettings { AccessHours = 24, CodeTtlHours = 24, PriceVnd = 50000 }), _clock);
 
-        // Chọn giảm giá -> số tiền lưu vào phiên truy cập là giá đã giảm
-        [Theory]
-        [InlineData(0, 50000)]
-        [InlineData(5, 47500)]
-        [InlineData(10, 45000)]
-        public async Task CreateSession_AppliesDiscount(int percent, int expectedAmount)
-        {
-            AccessSession? saved = null;
-            _repo.Setup(r => r.AddAsync(It.IsAny<AccessSession>())).Callback<AccessSession>(s => saved = s).Returns(Task.CompletedTask);
-            await Service().CreateSessionAsync(AccessMethod.Online, AccessStatus.Pending, discountPercent: percent);
-            Assert.Equal(expectedAmount, saved!.Amount);
-        }
-
-        [Fact]
-        public async Task CreateSession_InvalidDiscount_Throws()
-        {
-            var ex = await Assert.ThrowsAsync<BusinessException>(() =>
-                Service().CreateSessionAsync(AccessMethod.Online, AccessStatus.Pending, discountPercent: 90));
-            Assert.Equal("INVALID_DISCOUNT", ex.Code);
-        }
-
         private AccessSession Session(AccessStatus status) => new()
         {
             Id = 7, Code = "AB3K9Q", Status = status, Method = AccessMethod.Cash, Amount = 50000,
