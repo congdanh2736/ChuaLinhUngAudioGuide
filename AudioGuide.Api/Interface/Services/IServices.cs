@@ -93,6 +93,7 @@ namespace AudioGuide.Api.Interface.Services
         Task<LoginResultDto> LoginAsync(LoginDto dto);
         Task<UserDto> GetUserAsync(string userId);
         Task ChangePasswordAsync(string userId, ChangePasswordDto dto);
+        Task ChangePasswordByLoginAsync(ChangePasswordByLoginDto dto);
         Task<List<UserDto>> ListUsersAsync();
         Task<UserDto> CreateUserAsync(CreateUserDto dto);
         Task<UserDto> UpdateUserAsync(string id, UpdateUserDto dto, string actorId);

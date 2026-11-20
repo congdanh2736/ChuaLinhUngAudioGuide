@@ -4,7 +4,8 @@ import { adminHttp as http } from "./adminClient.js";
 export const authApi = {
     login: (userName, password) => http.post("/auth/login", { userName, password }),
     me: () => http.get("/auth/me"),
-    changePassword: (oldPassword, newPassword) => http.post("/auth/change-password", { oldPassword, newPassword })
+    changePassword: (oldPassword, newPassword) => http.post("/auth/change-password", { oldPassword, newPassword }),
+    changePasswordByLogin: data => http.post("/auth/change-password-by-login", data)
 };
 
 export const userApi = {

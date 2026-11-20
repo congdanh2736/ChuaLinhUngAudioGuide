@@ -68,6 +68,18 @@ namespace AudioGuide.Api.Services
             if (!result.Succeeded) throw new BusinessException(IdentityErrors(result), "INVALID_PASSWORD");
         }
 
+        public async Task ChangePasswordByLoginAsync(ChangePasswordByLoginDto dto)
+        {
+            var user = await _userManager.FindByNameAsync(dto.UserName.Trim());
+            // Giống đăng nhập: cùng 1 thông báo để không lộ tài khoản nào tồn tại
+            if (user == null || !await _userManager.CheckPasswordAsync(user, dto.OldPassword))
+                throw new UnauthorizedException("Sai tên đăng nhập hoặc mật khẩu hiện tại", "INVALID_CREDENTIALS");
+            if (!user.IsActive)
+                throw new UnauthorizedException("Tài khoản đã bị khóa", "ACCOUNT_DISABLED");
+            var result = await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
+            if (!result.Succeeded) throw new BusinessException(IdentityErrors(result), "INVALID_PASSWORD");
+        }
+
         public async Task<List<UserDto>> ListUsersAsync()
         {
             var users = await _userManager.Users.OrderBy(u => u.UserName).ToListAsync();

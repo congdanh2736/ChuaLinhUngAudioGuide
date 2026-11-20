@@ -31,6 +31,23 @@ namespace AudioGuide.Api.Validators.Auth
         }
     }
 
+    public class ChangePasswordByLoginValidator : AbstractValidator<ChangePasswordByLoginDto>
+    {
+        public ChangePasswordByLoginValidator()
+        {
+            RuleFor(x => x.UserName).NotEmpty().WithMessage("Vui lòng nhập tên đăng nhập")
+                .MaximumLength(50).WithMessage("Tên đăng nhập tối đa 50 ký tự");
+            RuleFor(x => x.OldPassword).NotEmpty().WithMessage("Vui lòng nhập mật khẩu hiện tại")
+                .MaximumLength(100).WithMessage("Mật khẩu tối đa 100 ký tự");
+            RuleFor(x => x.NewPassword).NotEmpty().WithMessage("Vui lòng nhập mật khẩu mới")
+                .MinimumLength(8).WithMessage("Mật khẩu mới tối thiểu 8 ký tự")
+                .MaximumLength(100).WithMessage("Mật khẩu tối đa 100 ký tự")
+                .NotEqual(x => x.OldPassword).WithMessage("Mật khẩu mới phải khác mật khẩu cũ");
+            RuleFor(x => x.ConfirmPassword).NotEmpty().WithMessage("Vui lòng xác nhận mật khẩu mới")
+                .Equal(x => x.NewPassword).WithMessage("Mật khẩu xác nhận không khớp");
+        }
+    }
+
     public class CreateUserValidator : AbstractValidator<CreateUserDto>
     {
         public CreateUserValidator()
