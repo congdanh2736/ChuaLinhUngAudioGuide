@@ -89,10 +89,12 @@ function setupButtons() {
             title: "Đổi mật khẩu",
             fields: [
                 { name: "oldPassword", label: "Mật khẩu hiện tại", type: "password", required: true },
-                { name: "newPassword", label: "Mật khẩu mới (tối thiểu 8 ký tự)", type: "password", required: true }
+                { name: "newPassword", label: "Mật khẩu mới (tối thiểu 8 ký tự)", type: "password", required: true },
+                { name: "confirmPassword", label: "Xác nhận mật khẩu mới", type: "password", required: true }
             ],
             submitText: "Đổi mật khẩu",
             onSubmit: async data => {
+                if (data.newPassword !== data.confirmPassword) throw new Error("Mật khẩu xác nhận không khớp.");
                 await authApi.changePassword(data.oldPassword, data.newPassword);
                 toast.success("Đã đổi mật khẩu.");
             }

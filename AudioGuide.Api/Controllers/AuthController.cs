@@ -40,5 +40,13 @@ namespace AudioGuide.Api.Controllers
             await _service.ChangePasswordAsync(CurrentUserId, dto);
             return Ok(new MessageDto("Đã đổi mật khẩu"));
         }
+
+        // Đổi mật khẩu từ trang đăng nhập (không cần token): nhập tên đăng nhập + mật khẩu hiện tại + mật khẩu mới
+        [HttpPost("change-password-by-login")]
+        public async Task<ActionResult<MessageDto>> ChangePasswordByLogin([FromBody] ChangePasswordByLoginDto dto)
+        {
+            await _service.ChangePasswordByLoginAsync(dto);
+            return Ok(new MessageDto("Đã đổi mật khẩu"));
+        }
     }
 }
